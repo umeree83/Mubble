@@ -584,6 +584,70 @@
 }
         /* MESSAGE REPLY STYLES */
 .message {
+    margin-bottom: 15px;
+    animation: fadeIn 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    padding: 5px;
+}
+
+.message:hover {
+    background: rgba(233, 69, 96, 0.1);
+    border-radius: 10px;
+}
+
+.reply-indicator {
+    background: rgba(102, 126, 234, 0.2);
+    border-left: 3px solid #667eea;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.reply-indicator strong {
+    color: #667eea;
+}
+
+#replyPreview {
+    display: none;
+    background: rgba(102, 126, 234, 0.1);
+    border-left: 3px solid #667eea;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 0 10px 10px 0;
+    position: relative;
+    width: 100%;
+}
+
+#replyPreview.show {
+    display: block;
+}
+
+#replyText {
+    color: #aaa;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 30px;
+}
+
+#cancelReply {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #e94560;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+}
+        /* MESSAGE REPLY STYLES */
+.message {
     position: relative;
     cursor: pointer;
     transition: background 0.2s;
@@ -1058,6 +1122,14 @@ window.displayMessage = function(msg) {
     
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+    // Add click handler for reply
+messageDiv.style.cursor = 'pointer';
+messageDiv.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (msg.username !== currentUser) {
+        setReply(msg.username, msg.text, flag);
+    }
+});
     messageDiv.innerHTML = `
         ${replyHtml}
         <div class="message-header">
