@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #loginScreen {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        #loginScreen h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        #loginScreen p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        #usernameInput {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        #usernameInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        #joinBtn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #joinBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        #chatScreen {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        #chatHeader {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chatHeader h2 {
+            font-size: 20px;
+        }
+
+        #onlineCount {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        #messagesContainer {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: inline-block;
+            max-width: 70%;
+            word-wrap: break-word;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .my-message {
+            text-align: right;
+        }
+
+        .my-message .username {
+            color: #764ba2;
+        }
+
+        .my-message .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #inputArea {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #messageInput:focus {
+            border-color: #667eea;
+        }
+
+        #sendBtn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #sendBtn:hover {
+            transform: scale(1.05);
+        }
+
+        #sendBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .system-message {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        #messagesContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #messagesContainer::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #messagesContainer::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        #messagesContainer::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+/* DARK MODE & GREY THEME */
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #e94560;
+            --text-secondary: #eaeaea;
+            --accent: #533483;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-secondary);
+        }
+
+        #loginScreen {
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        #loginScreen h1 {
+            color: var(--text-secondary);
+        }
+
+        #loginScreen p {
+            color: #aaa;
+        }
+
+        /* AUTH TABS */
+        #authTabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 2px solid var(--text-primary);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--text-primary);
+            color: white;
+        }
+
+        .auth-form input, .auth-form select {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .auth-form input::placeholder {
+            color: #888;
+        }
+
+        .auth-form select {
+            cursor: pointer;
+        }
+
+        .auth-form select option {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+
+        #loginBtn, #registerBtn {
+            width: 100%;
+            padding: 15px;
+            background: var(--text-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #loginBtn:hover, #registerBtn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* CHAT SCREEN DARK THEME */
+        #chatScreen {
+            background: var(--bg-card);
+        }
+
+        #chatHeader {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        #messagesContainer {
+            background: var(--bg-primary);
+        }
+
+        .message-bubble {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--accent);
+        }
+
+        .my-message .message-bubble {
+            background: var(--text-primary);
+            color: white;
+            border: none;
+        }
+
+        .username {
+            color: var(--text-primary);
+        }
+
+        .my-message .username {
+            color: #ff6b6b;
+        }
+
+        .timestamp {
+            color: #888;
+        }
+
+        #inputArea {
+            background: var(--bg-secondary);
+            border-top: 2px solid var(--accent);
+        }
+
+        #messageInput {
+            background: var(--bg-primary);
+            border: 2px solid var(--accent);
+            color: var(--text-secondary);
+        }
+
+        #messageInput::placeholder {
+            color: #888;
+        }
+
+        #sendBtn {
+            background: var(--text-primary);
+        }
+
+        /* ADMIN PANEL */
+        #adminPanel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #adminHeader {
+            background: var(--bg-secondary);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--text-primary);
+        }
+
+        #adminHeader h2 {
+            color: var(--text-primary);
+        }
+
+        #adminHeader button {
+            background: var(--text-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        #adminContent {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        #adminContent h3 {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .user-item {
+            background: var(--bg-card);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--accent);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-flag {
+            font-size: 24px;
+        }
+
+        .user-name {
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+
+        .user-actions button {
+            padding: 8px 15px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-block {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-unblock {
+            background: #27ae60;
+            color: white;
+        }
+
+        #adminBtn {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: var(--text-primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 768px) {
+            #chatScreen {
+                height: 100vh;
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            #loginScreen {
+                max-width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            #inputArea {
+                padding: 10px;
+            }
+
+            #messageInput {
+                padding: 12px;
+            }
+
+            #sendBtn {
+                padding: 12px 20px;
+            }
+
+            #chatHeader h2 {
+                font-size: 16px;
+            }
+
+            #onlineCount {
+                font-size: 12px;
+                padding: 3px 10px;
+            }
+
+            #adminBtn {
+                bottom: 80px;
+                right: 10px;
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+        }
+
+        /* SCROLLBAR DARK */
+        #messagesContainer::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #messagesContainer::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        #messagesContainer::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        /* FLAG IN CHAT */
+        .user-flag-small {
+            font-size: 16px;
+            margin-right: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="loginScreen">
+    <h1>👋 Welcome to Group Chat</h1>
+    <p>Create account or login to join</p>
+    
+    <div id="authTabs">
+        <button class="tab-btn active" onclick="showTab('login')">Login</button>
+        <button class="tab-btn" onclick="showTab('register')">Register</button>
+    </div>
+    
+    <!-- LOGIN FORM -->
+    <div id="loginForm" class="auth-form">
+        <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button id="loginBtn" onclick="loginUser()">Login</button>
+    </div>
+    
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="auth-form" style="display:none;">
+        <input type="text" id="regUsername" placeholder="Choose Username" maxlength="20">
+        <input type="password" id="regPassword" placeholder="Choose Password">
+        <select id="countrySelect">
+            <option value="">Select Country</option>
+            <option value="Pakistan">🇵🇰 Pakistan</option>
+            <option value="India">🇮🇳 India</option>
+            <option value="USA">🇺🇸 USA</option>
+            <option value="UK">🇬🇧 UK</option>
+            <option value="Canada">🇨🇦 Canada</option>
+            <option value="Australia">🇦🇺 Australia</option>
+            <option value="Germany">🇩🇪 Germany</option>
+            <option value="France">🇫🇷 France</option>
+            <option value="Turkey">🇹🇷 Turkey</option>
+            <option value="UAE">🇦🇪 UAE</option>
+            <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+            <option value="Bangladesh">🇧🇩 Bangladesh</option>
+            <option value="Indonesia">🇮🇩 Indonesia</option>
+            <option value="Malaysia">🇲🇾 Malaysia</option>
+            <option value="Egypt">🇪🇬 Egypt</option>
+            <option value="Nigeria">🇳🇬 Nigeria</option>
+            <option value="South Africa">🇿🇦 South Africa</option>
+            <option value="Brazil">🇧🇷 Brazil</option>
+            <option value="Mexico">🇲🇽 Mexico</option>
+            <option value="China">🇨🇳 China</option>
+            <option value="Japan">🇯🇵 Japan</option>
+            <option value="South Korea">🇰🇷 South Korea</option>
+            <option value="Russia">🇷🇺 Russia</option>
+            <option value="Italy">🇮🇹 Italy</option>
+            <option value="Spain">🇪🇸 Spain</option>
+            <option value="Netherlands">🇳🇱 Netherlands</option>
+            <option value="Sweden">🇸🇪 Sweden</option>
+            <option value="Norway">🇳🇴 Norway</option>
+            <option value="Other">🌍 Other</option>
+        </select>
+        <button id="registerBtn" onclick="registerUser()">Create Account</button>
+    </div>
+</div>
+
+<!-- ADMIN PANEL (Hidden by default) -->
+    <div id="adminPanel" style="display:none;">
+        <div id="adminHeader">
+            <h2>🔐 Admin Panel</h2>
+            <button onclick="closeAdminPanel()">✕ Close</button>
+        </div>
+        <div id="adminContent">
+            <h3>User Management</h3>
+            <div id="usersList"></div>
+        </div>
+    </div>
+    
+    <!-- Admin Button (Only visible for admin) -->
+    <button id="adminBtn" onclick="openAdminPanel()" style="display:none;">⚙️ Admin</button>
+
+    <div id="chatScreen">
+        <div id="chatHeader">
+            <h2>💬 Group Chat</h2>
+            <span id="onlineCount">Online: 1</span>
+        </div>
+        <div id="messagesContainer"></div>
+        <div id="inputArea">
+            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";    
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        // ============================================
+// COUNTRY FLAGS DATA
+// ============================================
+const countryFlags = {
+    'Pakistan': '🇵🇰', 'India': '🇮🇳', 'USA': '🇺🇸', 'UK': '🇬🇧', 
+    'Canada': '🇨🇦', 'Australia': '🇦🇺', 'Germany': '🇩🇪', 'France': '🇫🇷',
+    'Turkey': '🇹🇷', 'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦', 'Bangladesh': '🇧🇩',
+    'Indonesia': '🇮🇩', 'Malaysia': '🇲🇾', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬',
+    'South Africa': '🇿🇦', 'Brazil': '🇧🇷', 'Mexico': '🇲🇽', 'China': '🇨🇳',
+    'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Russia': '🇷🇺', 'Italy': '🇮🇹',
+    'Spain': '🇪🇸', 'Netherlands': '🇳🇱', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
+    'Other': '🌍'
+};
+
+// Admin credentials
+const ADMIN_USERNAME = 'Umar';
+const ADMIN_PASSWORD = '12345';
+
+        // ============================================
+        // FIREBASE CONFIG - REPLACE THESE VALUES!
+        // ============================================
+       const firebaseConfig = {
+           apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
+           authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
+           projectId: "my-chat-app-2026-59e34",
+           storageBucket: "my-chat-app-2026-59e34.firebasestorage.app",
+           messagingSenderId: "571790875269",
+           appId: "1:571790875269:web:0ba9674e50caebf911a7ec"
+         };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let currentUser = "";
+        let currentCountry = "";
+        let isAdmin = false;
+        let messagesRef = collection(db, "messages");
+        let usersRef = collection(db, "users");
+        let unsubscribe = null;
+
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        window.showTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (tab === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        };
+
+        // ============================================
+        // REGISTER USER
+        // ============================================
+        window.registerUser = async function() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const country = document.getElementById('countrySelect').value;
+
+            if (!username || !password || !country) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            if (password.length < 4) {
+                alert("Password must be at least 4 characters!");
+                return;
+            }
+
+            try {
+                // Check if username exists
+                const userQuery = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(userQuery);
+                
+                if (!querySnapshot.empty) {
+                    alert("Username already taken! Choose another.");
+                    return;
+                }
+
+                // Create user
+                await signInAnonymously(auth);
+                
+                await addDoc(usersRef, {
+                    username: username,
+                    password: password, // In production, hash this!
+                    country: country,
+                    flag: countryFlags[country],
+                    createdAt: serverTimestamp(),
+                    isBlocked: false,
+                    isAdmin: false,
+                    userId: auth.currentUser.uid
+                });
+
+                alert("Account created! Please login.");
+                showTab('login');
+                
+            } catch (error) {
+                console.error("Register error:", error);
+                alert("Error creating account: " + error.message);
+            }
+        };
+
+        // ============================================
+        // LOGIN USER
+        // ============================================
+        window.loginUser = async function() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                alert("Please enter username and password!");
+                return;
+            }
+
+            // Check admin login first
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                await signInAnonymously(auth);
+                currentUser = ADMIN_USERNAME;
+                currentCountry = "Pakistan";
+                isAdmin = true;
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'flex';
+                document.getElementById('adminBtn').style.display = 'block';
+                
+                listenToMessages();
+                setupChatInput();
+                return;
+            }
+
+            try {
+                await signInAnonymously(auth);
+                
+                // Find user in database
+                const userQuery = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(userQuery);
+                
+                if (querySnapshot.empty) {
+                    alert("User not found!");
+                    return;
+                }
+
+                const userData = querySnapshot.docs[0].data();
+                
+                if (userData.password !== password) {
+                    alert("Wrong password!");
+                    return;
+                }
+
+                if (userData.isBlocked) {
+                    alert("Your account has been blocked by admin!");
+                    return;
+                }
+
+                currentUser = userData.username;
+                currentCountry = userData.country;
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'flex';
+                
+                if (userData.isAdmin) {
+                    document.getElementById('adminBtn').style.display = 'block';
+                    isAdmin = true;
+                }
+                
+                listenToMessages();
+                setupChatInput();
+                
+            } catch (error) {
+                console.error("Login error:", error);
+                alert("Error logging in: " + error.message);
+            }
+        };
+
+        function setupChatInput() {
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            document.getElementById('messageInput').focus();
+        }
+
+        // ============================================
+        // SEND MESSAGE
+        // ============================================
+        window.sendMessage = async function() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            try {
+                await addDoc(messagesRef, {
+                    text: text,
+                    username: currentUser,
+                    country: currentCountry,
+                    flag: countryFlags[currentCountry] || '🌍',
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid,
+                    isAdmin: isAdmin
+                });
+                
+                input.value = '';
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            }
+        };
+
+        // ============================================
+        // LISTEN TO MESSAGES
+        // ============================================
+        function listenToMessages() {
+            const q = query(messagesRef, orderBy("timestamp", "asc"));
+            
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('messagesContainer');
+                
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const msg = change.doc.data();
+                        displayMessage(msg);
+                    }
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        function displayMessage(msg) {
+            const container = document.getElementById('messagesContainer');
+            const isMe = msg.username === currentUser;
+            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            
+            const adminBadge = msg.isAdmin ? '👑 ' : '';
+            const flag = msg.flag || '🌍';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="username">
+                        <span class="user-flag-small">${flag}</span>
+                        ${adminBadge}${msg.username}
+                    </span>
+                    <span class="timestamp">${time}</span>
+                </div>
+                <div class="message-bubble">${escapeHtml(msg.text)}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+        }
+
+        // ============================================
+        // ADMIN PANEL FUNCTIONS
+        // ============================================
+        window.openAdminPanel = function() {
+            document.getElementById('adminPanel').style.display = 'flex';
+            loadUsersList();
+        };
+
+        window.closeAdminPanel = function() {
+            document.getElementById('adminPanel').style.display = 'none';
+        };
+
+        async function loadUsersList() {
+            const container = document.getElementById('usersList');
+            container.innerHTML = 'Loading...';
+            
+            try {
+                const querySnapshot = await getDocs(usersRef);
+                container.innerHTML = '';
+                
+                querySnapshot.forEach((doc) => {
+                    const user = doc.data();
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    userDiv.innerHTML = `
+                        <div class="user-info">
+                            <span class="user-flag">${user.flag || '🌍'}</span>
+                            <span class="user-name">${user.username} ${user.isAdmin ? '👑' : ''}</span>
+                        </div>
+                        <div class="user-actions">
+                            ${user.isBlocked ? 
+                                `<button class="btn-unblock" onclick="unblockUser('${doc.id}')">Unblock</button>` :
+                                `<button class="btn-block" onclick="blockUser('${doc.id}')">Block</button>`
+                            }
+                        </div>
+                    `;
+                    container.appendChild(userDiv);
+                });
+            } catch (error) {
+                container.innerHTML = 'Error loading users';
+            }
+        }
+
+        window.blockUser = async function(userId) {
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    isBlocked: true
+                });
+                alert("User blocked!");
+                loadUsersList();
+            } catch (error) {
+                alert("Error blocking user");
+            }
+        };
+
+        window.unblockUser = async function(userId) {
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    isBlocked: false
+                });
+                alert("User unblocked!");
+                loadUsersList();
+            } catch (error) {
+                alert("Error unblocking user");
+            }
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key on login inputs
+        document.getElementById('loginUsername').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.loginUser();
+        });
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.loginUser();
+        });
+        document.getElementById('regUsername').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.registerUser();
+        });
+        document.getElementById('regPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.registerUser();
+        });
+        </script>
+
+</body>
+</html>
