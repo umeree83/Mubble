@@ -582,6 +582,65 @@
     cursor: not-allowed;
     transform: none;
 }
+        /* MESSAGE REPLY STYLES */
+.message {
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.message:hover {
+    background: rgba(233, 69, 96, 0.1);
+    border-radius: 10px;
+}
+
+.reply-indicator {
+    background: rgba(102, 126, 234, 0.2);
+    border-left: 3px solid #667eea;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.reply-indicator strong {
+    color: #667eea;
+}
+
+#replyPreview {
+    display: none;
+    background: rgba(102, 126, 234, 0.1);
+    border-left: 3px solid #667eea;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 0 10px 10px 0;
+    position: relative;
+}
+
+#replyPreview.show {
+    display: block;
+}
+
+#replyText {
+    color: #aaa;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#cancelReply {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #e94560;
+    cursor: pointer;
+    font-size: 18px;
+}
 
     </style>
 </head>
@@ -665,8 +724,14 @@
         </div>
         <div id="messagesContainer"></div>
         <div id="inputArea">
-    <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
-    <button id="sendBtn" onclick="sendMessage()">Send</button>
+    <div id="replyPreview">
+        <div id="replyText"></div>
+        <button id="cancelReply" onclick="cancelReply()">×</button>
+    </div>
+    <div style="display: flex; width: 100%;">
+        <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+    </div>
 </div>
     </div>
 
@@ -888,6 +953,133 @@ const ADMIN_PASSWORD = '12345';
                 alert("Failed to send message. Please try again.");
             }
         };
+        // ============================================
+// REPLY TO MESSAGE FUNCTIONS
+// ============================================
+let replyingTo = null;
+
+// Add click handlers to messages
+function addMessageClickHandlers() {
+    const messages = document.querySelectorAll('.message');
+    messages.forEach(msg => {
+        msg.addEventListener('click', function() {
+            const username = this.querySelector('.username').textContent.replace('👑 ', '').trim();
+            const text = this.querySelector('.message-bubble').textContent;
+            const flag = this.querySelector('.user-flag-small')?.textContent || '🌍';
+            
+            setReply(username, text, flag);
+        });
+    });
+}
+
+// Set reply to a message
+window.setReply = function(username, text, flag) {
+    replyingTo = { username, text, flag };
+    
+    const replyPreview = document.getElementById('replyPreview');
+    const replyText = document.getElementById('replyText');
+    
+    // Truncate long messages
+    const shortText = text.length > 50 ? text.substring(0, 50) + '...' : text;
+    
+    replyText.innerHTML = `<span style="font-size: 16px;">${flag}</span> Replying to <strong>${username}</strong>: ${escapeHtml(shortText)}`;
+    replyPreview.classList.add('show');
+    
+    // Focus input
+    document.getElementById('messageInput').focus();
+};
+
+// Cancel reply
+window.cancelReply = function() {
+    replyingTo = null;
+    document.getElementById('replyPreview').classList.remove('show');
+};
+
+// Modified send message with reply
+const originalSendMessage = window.sendMessage;
+window.sendMessage = async function() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    
+    if (!text) return;
+    
+    try {
+        const messageData = {
+            text: text,
+            username: currentUser,
+            country: currentCountry,
+            flag: countryFlags[currentCountry] || '🌍',
+            timestamp: serverTimestamp(),
+            userId: auth.currentUser.uid,
+            isAdmin: isAdmin
+        };
+        
+        // Add reply info if replying
+        if (replyingTo) {
+            messageData.replyTo = {
+                username: replyingTo.username,
+                text: replyingTo.text.substring(0, 100), // Limit reply text
+                flag: replyingTo.flag
+            };
+        }
+        
+        await addDoc(messagesRef, messageData);
+        
+        input.value = '';
+        cancelReply(); // Clear reply after sending
+        
+    } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message. Please try again.");
+    }
+};
+
+// Update display message to show replies
+const originalDisplayMessage = displayMessage;
+window.displayMessage = function(msg) {
+    const container = document.getElementById('messagesContainer');
+    const isMe = msg.username === currentUser;
+    const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+    
+    const adminBadge = msg.isAdmin ? '👑 ' : '';
+    const flag = msg.flag || '🌍';
+    
+    // Build reply HTML if exists
+    let replyHtml = '';
+    if (msg.replyTo) {
+        const replyFlag = msg.replyTo.flag || '🌍';
+        replyHtml = `
+            <div class="reply-indicator">
+                <span class="user-flag-small">${replyFlag}</span>
+                Replying to <strong>${escapeHtml(msg.replyTo.username)}</strong>: ${escapeHtml(msg.replyTo.text)}
+            </div>
+        `;
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+    messageDiv.innerHTML = `
+        ${replyHtml}
+        <div class="message-header">
+            <span class="username">
+                <span class="user-flag-small">${flag}</span>
+                ${adminBadge}${msg.username}
+            </span>
+            <span class="timestamp">${time}</span>
+        </div>
+        <div class="message-bubble">${escapeHtml(msg.text)}</div>
+    `;
+    
+    // Add click handler for reply
+    messageDiv.addEventListener('click', function() {
+        if (msg.username !== currentUser) { // Don't reply to own messages
+            setReply(msg.username, msg.text, flag);
+        }
+    });
+    
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+};
 
         // ============================================
         // LISTEN TO MESSAGES
