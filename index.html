@@ -671,440 +671,355 @@
     </div>
 
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where, updateDoc, doc, setDoc, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";    
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";    
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 
-    // ============================================
-    // COUNTRY FLAGS DATA
-    // ============================================
-    const countryFlags = {
-        'Pakistan': '🇵🇰', 'India': '🇮🇳', 'USA': '🇺🇸', 'UK': '🇬🇧', 
-        'Canada': '🇨🇦', 'Australia': '🇦🇺', 'Germany': '🇩🇪', 'France': '🇫🇷',
-        'Turkey': '🇹🇷', 'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦', 'Bangladesh': '🇧🇩',
-        'Indonesia': '🇮🇩', 'Malaysia': '🇲🇾', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬',
-        'South Africa': '🇿🇦', 'Brazil': '🇧🇷', 'Mexico': '🇲🇽', 'China': '🇨🇳',
-        'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Russia': '🇷🇺', 'Italy': '🇮🇹',
-        'Spain': '🇪🇸', 'Netherlands': '🇳🇱', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
-        'Other': '🌍'
-    };
+        // ============================================
+// COUNTRY FLAGS DATA
+// ============================================
+const countryFlags = {
+    'Pakistan': '🇵🇰', 'India': '🇮🇳', 'USA': '🇺🇸', 'UK': '🇬🇧', 
+    'Canada': '🇨🇦', 'Australia': '🇦🇺', 'Germany': '🇩🇪', 'France': '🇫🇷',
+    'Turkey': '🇹🇷', 'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦', 'Bangladesh': '🇧🇩',
+    'Indonesia': '🇮🇩', 'Malaysia': '🇲🇾', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬',
+    'South Africa': '🇿🇦', 'Brazil': '🇧🇷', 'Mexico': '🇲🇽', 'China': '🇨🇳',
+    'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Russia': '🇷🇺', 'Italy': '🇮🇹',
+    'Spain': '🇪🇸', 'Netherlands': '🇳🇱', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
+    'Other': '🌍'
+};
 
-    // Admin credentials
-    const ADMIN_USERNAME = 'Umar';
-    const ADMIN_PASSWORD = '12345';
+// Admin credentials
+const ADMIN_USERNAME = 'Umar';
+const ADMIN_PASSWORD = '12345';
 
-    // ============================================
-    // FIREBASE CONFIG
-    // ============================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
-        authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
-        projectId: "my-chat-app-2026-59e34",
-        storageBucket: "my-chat-app-2026-59e34.firebasestorage.app",
-        messagingSenderId: "571790875269",
-        appId: "1:571790875269:web:0ba9674e50caebf911a7ec"
-    };
+        // ============================================
+        // FIREBASE CONFIG - REPLACE THESE VALUES!
+        // ============================================
+       const firebaseConfig = {
+           apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
+           authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
+           projectId: "my-chat-app-2026-59e34",
+           storageBucket: "my-chat-app-2026-59e34.firebasestorage.app",
+           messagingSenderId: "571790875269",
+           appId: "1:571790875269:web:0ba9674e50caebf911a7ec"
+         };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    
-    let currentUser = "";
-    let currentCountry = "";
-    let isAdmin = false;
-    let messagesRef = collection(db, "messages");
-    let usersRef = collection(db, "users");
-    let onlineRef = collection(db, "onlineUsers"); // NEW: Online users collection
-    let unsubscribe = null;
-    let onlineUnsubscribe = null; // NEW: For online listener
-
-    // ============================================
-    // TAB SWITCHING
-    // ============================================
-    window.showTab = function(tab) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
         
-        if (tab === 'login') {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-        } else {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-        }
-    };
+        let currentUser = "";
+        let currentCountry = "";
+        let isAdmin = false;
+        let messagesRef = collection(db, "messages");
+        let usersRef = collection(db, "users");
+        let unsubscribe = null;
 
-    // ============================================
-    // REGISTER USER
-    // ============================================
-    window.registerUser = async function() {
-        const username = document.getElementById('regUsername').value.trim();
-        const password = document.getElementById('regPassword').value;
-        const country = document.getElementById('countrySelect').value;
-
-        if (!username || !password || !country) {
-            alert("Please fill all fields!");
-            return;
-        }
-
-        if (password.length < 4) {
-            alert("Password must be at least 4 characters!");
-            return;
-        }
-
-        try {
-            const userQuery = query(usersRef, where("username", "==", username));
-            const querySnapshot = await getDocs(userQuery);
+        // ============================================
+        // TAB SWITCHING
+        // ============================================
+        window.showTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
             
-            if (!querySnapshot.empty) {
-                alert("Username already taken! Choose another.");
+            if (tab === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+            }
+        };
+
+        // ============================================
+        // REGISTER USER
+        // ============================================
+        window.registerUser = async function() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const country = document.getElementById('countrySelect').value;
+
+            if (!username || !password || !country) {
+                alert("Please fill all fields!");
                 return;
             }
 
-            await signInAnonymously(auth);
-            
-            await addDoc(usersRef, {
-                username: username,
-                password: password,
-                country: country,
-                flag: countryFlags[country],
-                createdAt: serverTimestamp(),
-                isBlocked: false,
-                isAdmin: false,
-                userId: auth.currentUser.uid
-            });
-
-            alert("Account created! Please login.");
-            showTab('login');
-            
-        } catch (error) {
-            console.error("Register error:", error);
-            alert("Error creating account: " + error.message);
-        }
-    };
-
-    // ============================================
-    // LOGIN USER
-    // ============================================
-    window.loginUser = async function() {
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
-
-        if (!username || !password) {
-            alert("Please enter username and password!");
-            return;
-        }
-
-        // Check admin login first
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-            await signInAnonymously(auth);
-            currentUser = ADMIN_USERNAME;
-            currentCountry = "Pakistan";
-            isAdmin = true;
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('chatScreen').style.display = 'flex';
-            document.getElementById('adminBtn').style.display = 'block';
-            
-            // NEW: Mark user as online
-            await markUserOnline();
-            listenToMessages();
-            listenToOnlineUsers(); // NEW: Start listening to online users
-            setupChatInput();
-            return;
-        }
-
-        try {
-            await signInAnonymously(auth);
-            
-            const userQuery = query(usersRef, where("username", "==", username));
-            const querySnapshot = await getDocs(userQuery);
-            
-            if (querySnapshot.empty) {
-                alert("User not found!");
+            if (password.length < 4) {
+                alert("Password must be at least 4 characters!");
                 return;
             }
 
-            const userData = querySnapshot.docs[0].data();
-            
-            if (userData.password !== password) {
-                alert("Wrong password!");
-                return;
-            }
-
-            if (userData.isBlocked) {
-                alert("Your account has been blocked by admin!");
-                return;
-            }
-
-            currentUser = userData.username;
-            currentCountry = userData.country;
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('chatScreen').style.display = 'flex';
-            
-            if (userData.isAdmin) {
-                document.getElementById('adminBtn').style.display = 'block';
-                isAdmin = true;
-            }
-            
-            // NEW: Mark user as online
-            await markUserOnline();
-            listenToMessages();
-            listenToOnlineUsers(); // NEW: Start listening to online users
-            setupChatInput();
-            
-        } catch (error) {
-            console.error("Login error:", error);
-            alert("Error logging in: " + error.message);
-        }
-    };
-
-    // ============================================
-    // NEW: MARK USER ONLINE (Real-time tracking)
-    // ============================================
-    async function markUserOnline() {
-        const userId = auth.currentUser.uid;
-        const userOnlineRef = doc(db, "onlineUsers", userId);
-        
-        // Add user to online collection
-        await setDoc(userOnlineRef, {
-            username: currentUser,
-            country: currentCountry,
-            flag: countryFlags[currentCountry] || '🌍',
-            joinedAt: serverTimestamp(),
-            lastSeen: serverTimestamp()
-        });
-        
-        // Auto-remove when user disconnects (tab close, refresh, etc.)
-        // Note: onDisconnect works with Firebase Realtime DB, for Firestore we use heartbeat approach
-    }
-
-    // ============================================
-    // NEW: LISTEN TO ONLINE USERS (Real-time counter)
-    // ============================================
-    function listenToOnlineUsers() {
-        // Listen to all online users
-        onlineUnsubscribe = onSnapshot(onlineRef, (snapshot) => {
-            const count = snapshot.size; // Count of online users
-            document.getElementById('onlineCount').textContent = `Online: ${count}`;
-            
-            // Optional: Update every minute to keep "lastSeen" fresh
-            updateLastSeen();
-        });
-    }
-
-    // ============================================
-    // NEW: UPDATE LAST SEEN (Heartbeat)
-    // ============================================
-    async function updateLastSeen() {
-        if (!auth.currentUser) return;
-        
-        const userId = auth.currentUser.uid;
-        const userOnlineRef = doc(db, "onlineUsers", userId);
-        
-        await updateDoc(userOnlineRef, {
-            lastSeen: serverTimestamp()
-        }).catch(() => {
-            // If doc doesn't exist, create it
-            setDoc(userOnlineRef, {
-                username: currentUser,
-                country: currentCountry,
-                flag: countryFlags[currentCountry] || '🌍',
-                joinedAt: serverTimestamp(),
-                lastSeen: serverTimestamp()
-            });
-        });
-    }
-
-    // Heartbeat every 30 seconds to show user is still active
-    setInterval(updateLastSeen, 30000);
-
-    function setupChatInput() {
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        document.getElementById('messageInput').focus();
-    }
-
-    // ============================================
-    // SEND MESSAGE
-    // ============================================
-    window.sendMessage = async function() {
-        const input = document.getElementById('messageInput');
-        const text = input.value.trim();
-        
-        if (!text) return;
-        
-        try {
-            await addDoc(messagesRef, {
-                text: text,
-                username: currentUser,
-                country: currentCountry,
-                flag: countryFlags[currentCountry] || '🌍',
-                timestamp: serverTimestamp(),
-                userId: auth.currentUser.uid,
-                isAdmin: isAdmin
-            });
-            
-            input.value = '';
-        } catch (error) {
-            console.error("Error sending message:", error);
-            alert("Failed to send message. Please try again.");
-        }
-    };
-
-    // ============================================
-    // LISTEN TO MESSAGES
-    // ============================================
-    function listenToMessages() {
-        const q = query(messagesRef, orderBy("timestamp", "asc"));
-        
-        unsubscribe = onSnapshot(q, (snapshot) => {
-            const container = document.getElementById('messagesContainer');
-            
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const msg = change.doc.data();
-                    displayMessage(msg);
+            try {
+                // Check if username exists
+                const userQuery = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(userQuery);
+                
+                if (!querySnapshot.empty) {
+                    alert("Username already taken! Choose another.");
+                    return;
                 }
+
+                // Create user
+                await signInAnonymously(auth);
+                
+                await addDoc(usersRef, {
+                    username: username,
+                    password: password, // In production, hash this!
+                    country: country,
+                    flag: countryFlags[country],
+                    createdAt: serverTimestamp(),
+                    isBlocked: false,
+                    isAdmin: false,
+                    userId: auth.currentUser.uid
+                });
+
+                alert("Account created! Please login.");
+                showTab('login');
+                
+            } catch (error) {
+                console.error("Register error:", error);
+                alert("Error creating account: " + error.message);
+            }
+        };
+
+        // ============================================
+        // LOGIN USER
+        // ============================================
+        window.loginUser = async function() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                alert("Please enter username and password!");
+                return;
+            }
+
+            // Check admin login first
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                await signInAnonymously(auth);
+                currentUser = ADMIN_USERNAME;
+                currentCountry = "Pakistan";
+                isAdmin = true;
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'flex';
+                document.getElementById('adminBtn').style.display = 'block';
+                
+                listenToMessages();
+                setupChatInput();
+                return;
+            }
+
+            try {
+                await signInAnonymously(auth);
+                
+                // Find user in database
+                const userQuery = query(usersRef, where("username", "==", username));
+                const querySnapshot = await getDocs(userQuery);
+                
+                if (querySnapshot.empty) {
+                    alert("User not found!");
+                    return;
+                }
+
+                const userData = querySnapshot.docs[0].data();
+                
+                if (userData.password !== password) {
+                    alert("Wrong password!");
+                    return;
+                }
+
+                if (userData.isBlocked) {
+                    alert("Your account has been blocked by admin!");
+                    return;
+                }
+
+                currentUser = userData.username;
+                currentCountry = userData.country;
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('chatScreen').style.display = 'flex';
+                
+                if (userData.isAdmin) {
+                    document.getElementById('adminBtn').style.display = 'block';
+                    isAdmin = true;
+                }
+                
+                listenToMessages();
+                setupChatInput();
+                
+            } catch (error) {
+                console.error("Login error:", error);
+                alert("Error logging in: " + error.message);
+            }
+        };
+
+        function setupChatInput() {
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
             });
+            document.getElementById('messageInput').focus();
+        }
+
+        // ============================================
+        // SEND MESSAGE
+        // ============================================
+        window.sendMessage = async function() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
             
-            container.scrollTop = container.scrollHeight;
+            if (!text) return;
+            
+            try {
+                await addDoc(messagesRef, {
+                    text: text,
+                    username: currentUser,
+                    country: currentCountry,
+                    flag: countryFlags[currentCountry] || '🌍',
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid,
+                    isAdmin: isAdmin
+                });
+                
+                input.value = '';
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            }
+        };
+
+        // ============================================
+        // LISTEN TO MESSAGES
+        // ============================================
+        function listenToMessages() {
+            const q = query(messagesRef, orderBy("timestamp", "asc"));
+            
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                const container = document.getElementById('messagesContainer');
+                
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const msg = change.doc.data();
+                        displayMessage(msg);
+                    }
+                });
+                
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        function displayMessage(msg) {
+            const container = document.getElementById('messagesContainer');
+            const isMe = msg.username === currentUser;
+            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            
+            const adminBadge = msg.isAdmin ? '👑 ' : '';
+            const flag = msg.flag || '🌍';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="username">
+                        <span class="user-flag-small">${flag}</span>
+                        ${adminBadge}${msg.username}
+                    </span>
+                    <span class="timestamp">${time}</span>
+                </div>
+                <div class="message-bubble">${escapeHtml(msg.text)}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+        }
+
+        // ============================================
+        // ADMIN PANEL FUNCTIONS
+        // ============================================
+        window.openAdminPanel = function() {
+            document.getElementById('adminPanel').style.display = 'flex';
+            loadUsersList();
+        };
+
+        window.closeAdminPanel = function() {
+            document.getElementById('adminPanel').style.display = 'none';
+        };
+
+        async function loadUsersList() {
+            const container = document.getElementById('usersList');
+            container.innerHTML = 'Loading...';
+            
+            try {
+                const querySnapshot = await getDocs(usersRef);
+                container.innerHTML = '';
+                
+                querySnapshot.forEach((doc) => {
+                    const user = doc.data();
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    userDiv.innerHTML = `
+                        <div class="user-info">
+                            <span class="user-flag">${user.flag || '🌍'}</span>
+                            <span class="user-name">${user.username} ${user.isAdmin ? '👑' : ''}</span>
+                        </div>
+                        <div class="user-actions">
+                            ${user.isBlocked ? 
+                                `<button class="btn-unblock" onclick="unblockUser('${doc.id}')">Unblock</button>` :
+                                `<button class="btn-block" onclick="blockUser('${doc.id}')">Block</button>`
+                            }
+                        </div>
+                    `;
+                    container.appendChild(userDiv);
+                });
+            } catch (error) {
+                container.innerHTML = 'Error loading users';
+            }
+        }
+
+        window.blockUser = async function(userId) {
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    isBlocked: true
+                });
+                alert("User blocked!");
+                loadUsersList();
+            } catch (error) {
+                alert("Error blocking user");
+            }
+        };
+
+        window.unblockUser = async function(userId) {
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    isBlocked: false
+                });
+                alert("User unblocked!");
+                loadUsersList();
+            } catch (error) {
+                alert("Error unblocking user");
+            }
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key on login inputs
+        document.getElementById('loginUsername').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.loginUser();
         });
-    }
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.loginUser();
+        });
+        document.getElementById('regUsername').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.registerUser();
+        });
+        document.getElementById('regPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') window.registerUser();
+        });
+        </script>
 
-    function displayMessage(msg) {
-        const container = document.getElementById('messagesContainer');
-        const isMe = msg.username === currentUser;
-        const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-        
-        const adminBadge = msg.isAdmin ? '👑 ' : '';
-        const flag = msg.flag || '🌍';
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-        messageDiv.innerHTML = `
-            <div class="message-header">
-                <span class="username">
-                    <span class="user-flag-small">${flag}</span>
-                    ${adminBadge}${msg.username}
-                </span>
-                <span class="timestamp">${time}</span>
-            </div>
-            <div class="message-bubble">${escapeHtml(msg.text)}</div>
-        `;
-        
-        container.appendChild(messageDiv);
-    }
-
-    // ============================================
-    // ADMIN PANEL FUNCTIONS
-    // ============================================
-    window.openAdminPanel = function() {
-        document.getElementById('adminPanel').style.display = 'flex';
-        loadUsersList();
-    };
-
-    window.closeAdminPanel = function() {
-        document.getElementById('adminPanel').style.display = 'none';
-    };
-
-    async function loadUsersList() {
-        const container = document.getElementById('usersList');
-        container.innerHTML = 'Loading...';
-        
-        try {
-            const querySnapshot = await getDocs(usersRef);
-            container.innerHTML = '';
-            
-            querySnapshot.forEach((doc) => {
-                const user = doc.data();
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-item';
-                userDiv.innerHTML = `
-                    <div class="user-info">
-                        <span class="user-flag">${user.flag || '🌍'}</span>
-                        <span class="user-name">${user.username} ${user.isAdmin ? '👑' : ''}</span>
-                    </div>
-                    <div class="user-actions">
-                        ${user.isBlocked ? 
-                            `<button class="btn-unblock" onclick="unblockUser('${doc.id}')">Unblock</button>` :
-                            `<button class="btn-block" onclick="blockUser('${doc.id}')">Block</button>`
-                        }
-                    </div>
-                `;
-                container.appendChild(userDiv);
-            });
-        } catch (error) {
-            container.innerHTML = 'Error loading users';
-        }
-    }
-
-    window.blockUser = async function(userId) {
-        try {
-            await updateDoc(doc(db, "users", userId), {
-                isBlocked: true
-            });
-            alert("User blocked!");
-            loadUsersList();
-        } catch (error) {
-            alert("Error blocking user");
-        }
-    };
-
-    window.unblockUser = async function(userId) {
-        try {
-            await updateDoc(doc(db, "users", userId), {
-                isBlocked: false
-            });
-            alert("User unblocked!");
-            loadUsersList();
-        } catch (error) {
-            alert("Error unblocking user");
-        }
-    };
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ============================================
-    // NEW: REMOVE USER FROM ONLINE WHEN LEAVING
-    // ============================================
-    window.removeFromOnline = async function() {
-        if (auth.currentUser) {
-            const userId = auth.currentUser.uid;
-            const userOnlineRef = doc(db, "onlineUsers", userId);
-            
-            // Delete from online users
-            await setDoc(userOnlineRef, {}).catch(() => {});
-            // Actually delete
-            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
-            await deleteDoc(userOnlineRef).catch(() => {});
-        }
-    };
-
-    // Handle page close/refresh
-    window.addEventListener('beforeunload', () => {
-        removeFromOnline();
-    });
-
-    // Enter key handlers
-    document.getElementById('loginUsername').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') window.loginUser();
-    });
-    document.getElementById('loginPassword').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') window.loginUser();
-    });
-    document.getElementById('regUsername').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') window.registerUser();
-    });
-    document.getElementById('regPassword').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') window.registerUser();
-    });
-</script>
 </body>
 </html>
