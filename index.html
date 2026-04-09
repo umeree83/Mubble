@@ -560,6 +560,28 @@
             font-size: 16px;
             margin-right: 5px;
         }
+        #sendBtn {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin-left: 10px;
+}
+
+#sendBtn:hover {
+    transform: scale(1.05);
+}
+
+#sendBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
 
     </style>
 </head>
@@ -643,8 +665,9 @@
         </div>
         <div id="messagesContainer"></div>
         <div id="inputArea">
-            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
-        </div>
+    <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+    <button id="sendBtn" onclick="sendMessage()">Send</button>
+</div>
     </div>
 
     <script type="module">
