@@ -2,116 +2,427 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Chat App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mubble - Group Chat</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        /* ============================================
+           CSS VARIABLES - LIGHT & DARK THEMES
+           ============================================ */
+        :root {
+            /* Light Theme (Default) */
+            --bg-cream: #faf8f5;
+            --bg-cream-dark: #f5f0e8;
+            --text-dark: #4a4a4a;
+            --text-muted: #888;
+            --accent-pink: #ff6ec7;
+            --accent-purple: #8e6cff;
+            --accent-blue: #6c9eff;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --shadow-color: rgba(142, 108, 255, 0.15);
+            
+            /* Chat Light */
+            --chat-bg: linear-gradient(135deg, #fff5f7 0%, #f8f5ff 50%, #f0f8ff 100%);
+            --chat-header-bg: rgba(255, 255, 255, 0.95);
+            --chat-header-text: #4a4a4a;
+            --message-bg: rgba(255, 255, 255, 0.9);
+            --message-text: #4a4a4a;
+            --input-area-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-cream: #1a1a2e;
+            --bg-cream-dark: #16213e;
+            --text-dark: #eaeaea;
+            --text-muted: #aaa;
+            --accent-pink: #ff6ec7;
+            --accent-purple: #a88beb;
+            --accent-blue: #6c9eff;
+            --glass-bg: rgba(22, 33, 62, 0.85);
+            --glass-border: rgba(142, 108, 255, 0.3);
+            --input-bg: rgba(15, 52, 96, 0.6);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            
+            /* Chat Dark */
+            --chat-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --chat-header-bg: rgba(22, 33, 62, 0.95);
+            --chat-header-text: #eaeaea;
+            --message-bg: rgba(15, 52, 96, 0.6);
+            --message-text: #eaeaea;
+            --input-area-bg: rgba(22, 33, 62, 0.95);
+        }
+
+        html, body {
+            height: 100%;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ============================================
+           THEME TOGGLE BUTTON - LOGIN PAGE (TOP RIGHT)
+           ============================================ */
+        #themeToggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 24px;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
+        /* Light theme toggle */
+        :root #themeToggle {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Dark theme toggle */
+        [data-theme="dark"] #themeToggle {
+            background: rgba(22, 33, 62, 0.9);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        #themeToggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* ============================================
+           THEME TOGGLE BUTTON - CHAT PAGE (TOP LEFT)
+           ============================================ */
+        .chat-active #themeToggle {
+            top: 12px;
+            left: 12px;
+            right: auto;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            z-index: 101;
+        }
+
+        /* ============================================
+           ANIMATED BACKGROUND - WORKS ON BOTH THEMES
+           ============================================ */
+        #loginBackground {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            transition: background 0.5s ease;
+        }
+
+        /* Light background */
+        :root #loginBackground {
+            background: linear-gradient(135deg, #fff5f7 0%, #f8f5ff 50%, #f0f8ff 100%);
+        }
+
+        /* Dark background */
+        [data-theme="dark"] #loginBackground {
+            background: linear-gradient(135deg, #2d1b2e 0%, #1f1b3a 50%, #1b2638 100%);
+        }
+
+        .mubble-text {
+            font-size: 120px;
+            font-weight: 900;
+            letter-spacing: 15px;
+            animation: float 8s ease-in-out infinite;
+            user-select: none;
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+
+        /* Light theme text */
+        :root .mubble-text {
+            opacity: 0.15;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff, #6c9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(142, 108, 255, 0.3);
+        }
+
+        /* Dark theme text */
+        [data-theme="dark"] .mubble-text {
+            opacity: 0.25;
+            background: linear-gradient(45deg, #ff9ad5, #c4b5ff, #9bb5ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 50px rgba(196, 181, 255, 0.4);
+        }
+
+        .mubble-text:nth-child(1) { animation-delay: 0s; }
+        .mubble-text:nth-child(2) { animation-delay: -2s; }
+        .mubble-text:nth-child(3) { animation-delay: -4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.02); }
+        }
+
+        /* Animation stops when chat opens */
+        .chat-active #loginBackground {
+            display: none;
+        }
+
+        /* ============================================
+           LOGIN SCREEN - CENTERED
+           ============================================ */
         #loginScreen {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            padding: 40px 35px;
+            border-radius: 25px;
             text-align: center;
-            max-width: 400px;
             width: 90%;
+            max-width: 380px;
+            max-height: 85vh;
+            overflow-y: auto;
+            transition: all 0.5s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
-        #loginScreen h1 {
-            color: #333;
+        /* Light login screen */
+        :root #loginScreen {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 60px var(--shadow-color), inset 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Dark login screen */
+        [data-theme="dark"] #loginScreen {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 60px var(--shadow-color), inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        /* MUBBLE Logo */
+        .app-logo {
+            font-size: 48px;
+            font-weight: 900;
             margin-bottom: 10px;
-            font-size: 28px;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff, #6c9eff, #ff6ec7);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+            animation: glitter 3s ease-in-out infinite;
+            position: relative;
+            display: inline-block;
         }
 
-        #loginScreen p {
-            color: #666;
-            margin-bottom: 30px;
+        .app-logo::after {
+            content: 'Mubble';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.8) 50%, transparent 70%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shimmer 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes glitter {
+            0%, 100% { background-position: 0% 50%; filter: brightness(1); }
+            50% { background-position: 100% 50%; filter: brightness(1.2); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -100% 0; }
+            100% { background-position: 100% 0; }
+        }
+
+        .tagline {
+            color: var(--text-muted);
             font-size: 14px;
+            margin-bottom: 30px;
+            font-weight: 500;
+            transition: color 0.3s;
         }
 
-        #usernameInput {
+        /* AUTH TABS */
+        #authTabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            margin-bottom: 20px;
-            transition: border-color 0.3s;
+            height: 100%;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
         }
 
-        #usernameInput:focus {
+        .tab-btn.active {
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(142, 108, 255, 0.3);
+        }
+
+        .tab-btn.active::before {
+            opacity: 1;
+        }
+
+        /* FORM INPUTS */
+        .auth-form input, .auth-form select {
+            width: 100%;
+            padding: 16px 18px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(142, 108, 255, 0.15);
+            border-radius: 15px;
+            font-size: 15px;
             outline: none;
-            border-color: #667eea;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            background: var(--input-bg);
+            color: var(--text-dark);
         }
 
-        #joinBtn {
+        .auth-form input:focus, .auth-form select:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px rgba(142, 108, 255, 0.2);
+        }
+
+        .auth-form input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        /* BUTTONS */
+        #loginBtn, #registerBtn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            background: linear-gradient(45deg, #ff9ad5, #a88beb);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(168, 139, 235, 0.3);
         }
 
-        #joinBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        #loginBtn:hover, #registerBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(168, 139, 235, 0.4);
         }
 
+        #loginBtn:disabled, #registerBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ============================================
+           CHAT SCREEN - BOTH THEMES
+           ============================================ */
         #chatScreen {
             display: none;
             width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            height: 100vh;
             flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            background: var(--chat-bg);
+            transition: background 0.5s ease;
         }
 
         #chatHeader {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid rgba(142, 108, 255, 0.2);
+            backdrop-filter: blur(10px);
+            background: var(--chat-header-bg);
+            color: var(--chat-header-text);
+            transition: all 0.3s;
+            padding-left: 60px;  /* Space for theme button */
         }
 
         #chatHeader h2 {
-            font-size: 20px;
+            font-size: 18px;
+            font-weight: 600;
         }
 
         #onlineCount {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 15px;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
+            color: white;
+            padding: 6px 15px;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         #messagesContainer {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f5f7fa;
+            padding: 15px;
+            background: transparent;
         }
 
         .message {
@@ -128,30 +439,33 @@
             display: flex;
             align-items: center;
             margin-bottom: 5px;
+            gap: 8px;
         }
 
         .username {
-            font-weight: bold;
-            color: #667eea;
-            margin-right: 10px;
-            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-pink);
+            font-size: 13px;
         }
 
         .timestamp {
-            color: #999;
-            font-size: 12px;
+            color: var(--text-muted);
+            font-size: 11px;
         }
 
         .message-bubble {
-            background: white;
             padding: 12px 16px;
             border-radius: 18px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             display: inline-block;
-            max-width: 70%;
+            max-width: 75%;
             word-wrap: break-word;
-            color: #333;
             line-height: 1.4;
+            font-size: 15px;
+            backdrop-filter: blur(5px);
+            background: var(--message-bg);
+            color: var(--message-text);
+            border: 1px solid rgba(142, 108, 255, 0.2);
+            transition: all 0.3s;
         }
 
         .my-message {
@@ -159,231 +473,57 @@
         }
 
         .my-message .username {
-            color: #764ba2;
+            color: var(--accent-purple);
         }
 
         .my-message .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
             color: white;
+            border: none;
         }
 
         #inputArea {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
+            padding: 12px 15px;
             display: flex;
             gap: 10px;
+            backdrop-filter: blur(10px);
+            background: var(--input-area-bg);
+            border-top: 2px solid rgba(142, 108, 255, 0.2);
+            transition: all 0.3s;
         }
 
         #messageInput {
             flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            padding: 14px 18px;
+            border: 2px solid rgba(142, 108, 255, 0.2);
             border-radius: 25px;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            background: var(--input-bg);
+            color: var(--text-dark);
         }
 
         #messageInput:focus {
-            border-color: #667eea;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(142, 108, 255, 0.2);
         }
 
         #sendBtn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px 24px;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
             color: white;
             border: none;
             border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 14px;
+            font-weight: 700;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(142, 108, 255, 0.3);
         }
 
         #sendBtn:hover {
             transform: scale(1.05);
-        }
-
-        #sendBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .system-message {
-            text-align: center;
-            color: #999;
-            font-style: italic;
-            margin: 10px 0;
-            font-size: 14px;
-        }
-
-        #messagesContainer::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #messagesContainer::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        #messagesContainer::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-
-        #messagesContainer::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-/* DARK MODE & GREY THEME */
-        :root {
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
-            --bg-card: #0f3460;
-            --text-primary: #e94560;
-            --text-secondary: #eaeaea;
-            --accent: #533483;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-secondary);
-        }
-
-        #loginScreen {
-            background: var(--bg-card);
-            color: var(--text-secondary);
-        }
-
-        #loginScreen h1 {
-            color: var(--text-secondary);
-        }
-
-        #loginScreen p {
-            color: #aaa;
-        }
-
-        /* AUTH TABS */
-        #authTabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: transparent;
-            border: 2px solid var(--text-primary);
-            color: var(--text-secondary);
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            background: var(--text-primary);
-            color: white;
-        }
-
-        .auth-form input, .auth-form select {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            color: var(--text-secondary);
-            font-size: 16px;
-        }
-
-        .auth-form input::placeholder {
-            color: #888;
-        }
-
-        .auth-form select {
-            cursor: pointer;
-        }
-
-        .auth-form select option {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-        }
-
-        #loginBtn, #registerBtn {
-            width: 100%;
-            padding: 15px;
-            background: var(--text-primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        #loginBtn:hover, #registerBtn:hover {
-            transform: translateY(-2px);
-        }
-
-        /* CHAT SCREEN DARK THEME */
-        #chatScreen {
-            background: var(--bg-card);
-        }
-
-        #chatHeader {
-            background: var(--bg-secondary);
-            border-bottom: 2px solid var(--accent);
-        }
-
-        #messagesContainer {
-            background: var(--bg-primary);
-        }
-
-        .message-bubble {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border: 1px solid var(--accent);
-        }
-
-        .my-message .message-bubble {
-            background: var(--text-primary);
-            color: white;
-            border: none;
-        }
-
-        .username {
-            color: var(--text-primary);
-        }
-
-        .my-message .username {
-            color: #ff6b6b;
-        }
-
-        .timestamp {
-            color: #888;
-        }
-
-        #inputArea {
-            background: var(--bg-secondary);
-            border-top: 2px solid var(--accent);
-        }
-
-        #messageInput {
-            background: var(--bg-primary);
-            border: 2px solid var(--accent);
-            color: var(--text-secondary);
-        }
-
-        #messageInput::placeholder {
-            color: #888;
-        }
-
-        #sendBtn {
-            background: var(--text-primary);
         }
 
         /* ADMIN PANEL */
@@ -393,612 +533,513 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-primary);
             z-index: 1000;
-            display: flex;
+            display: none;
             flex-direction: column;
+            background: var(--chat-bg);
+            transition: background 0.3s;
         }
 
         #adminHeader {
-            background: var(--bg-secondary);
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--text-primary);
+            border-bottom: 2px solid var(--accent-pink);
+            background: var(--chat-header-bg);
+            color: var(--chat-header-text);
+            padding-left: 60px;  /* Space for theme button */
         }
 
         #adminHeader h2 {
-            color: var(--text-primary);
-        }
-
-        #adminHeader button {
-            background: var(--text-primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        #adminContent {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        #adminContent h3 {
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-
-        .user-item {
-            background: var(--bg-card);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--accent);
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-flag {
-            font-size: 24px;
-        }
-
-        .user-name {
-            color: var(--text-secondary);
-            font-weight: bold;
-        }
-
-        .user-actions button {
-            padding: 8px 15px;
-            margin-left: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-block {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-unblock {
-            background: #27ae60;
-            color: white;
+            color: var(--accent-pink);
+            font-size: 18px;
         }
 
         #adminBtn {
             position: fixed;
-            bottom: 100px;
-            right: 20px;
-            background: var(--text-primary);
+            bottom: 80px;
+            right: 15px;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 12px 18px;
             border-radius: 25px;
             cursor: pointer;
             z-index: 100;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(142, 108, 255, 0.4);
         }
+
+        .user-item {
+            padding: 15px;
+            margin: 10px 15px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(142, 108, 255, 0.2);
+            background: var(--message-bg);
+            color: var(--message-text);
+            transition: all 0.3s;
+        }
+
+        .btn-block { background: #e74c3c; color: white; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-unblock { background: #27ae60; color: white; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(142, 108, 255, 0.3); border-radius: 3px; }
 
         /* MOBILE RESPONSIVE */
         @media (max-width: 768px) {
-            #chatScreen {
-                height: 100vh;
-                max-width: 100%;
-                border-radius: 0;
+            #themeToggle {
+                top: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .chat-active #themeToggle {
+                top: 10px;
+                left: 10px;
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+
+            .mubble-text {
+                font-size: 70px;
+                letter-spacing: 8px;
             }
 
             #loginScreen {
-                max-width: 100%;
+                padding: 30px 25px;
+                width: 92%;
+                max-width: 340px;
+                max-height: 80vh;
+            }
+
+            .app-logo {
+                font-size: 40px;
+            }
+
+            #chatScreen {
                 height: 100vh;
-                border-radius: 0;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+                height: -webkit-fill-available;
             }
 
-            .message-bubble {
-                max-width: 85%;
+            #chatHeader {
+                padding-left: 55px;
             }
 
-            #inputArea {
-                padding: 10px;
-            }
-
-            #messageInput {
-                padding: 12px;
-            }
-
-            #sendBtn {
-                padding: 12px 20px;
-            }
-
-            #chatHeader h2 {
-                font-size: 16px;
-            }
-
-            #onlineCount {
-                font-size: 12px;
-                padding: 3px 10px;
-            }
-
-            #adminBtn {
-                bottom: 80px;
-                right: 10px;
-                padding: 10px 15px;
-                font-size: 12px;
+            #adminHeader {
+                padding-left: 55px;
             }
         }
 
-        /* SCROLLBAR DARK */
-        #messagesContainer::-webkit-scrollbar {
-            width: 6px;
+        @supports (-webkit-touch-callout: none) {
+            #chatScreen {
+                height: -webkit-fill-available;
+            }
+            
+            #loginScreen {
+                max-height: 75vh;
+            }
         }
-
-        #messagesContainer::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-
-        #messagesContainer::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 3px;
-        }
-
-        /* FLAG IN CHAT */
-        .user-flag-small {
-            font-size: 16px;
-            margin-right: 5px;
-        }
-        #sendBtn {
-    padding: 15px 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 25px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s;
-    margin-left: 10px;
-}
-
-#sendBtn:hover {
-    transform: scale(1.05);
-}
-
-#sendBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
     </style>
 </head>
 <body>
 
-    <div id="loginScreen">
-    <h1>👋 Welcome to Group Chat</h1>
-    <p>Create account or login to join</p>
-    
-    <div id="authTabs">
-        <button class="tab-btn active" onclick="showTab('login')">Login</button>
-        <button class="tab-btn" onclick="showTab('register')">Register</button>
-    </div>
-    
-    <!-- LOGIN FORM -->
-    <div id="loginForm" class="auth-form">
-        <input type="text" id="loginUsername" placeholder="Username" maxlength="20">
-        <input type="password" id="loginPassword" placeholder="Password">
-        <button id="loginBtn" onclick="loginUser()">Login</button>
-    </div>
-    
-    <!-- REGISTER FORM -->
-    <div id="registerForm" class="auth-form" style="display:none;">
-        <input type="text" id="regUsername" placeholder="Choose Username" maxlength="20">
-        <input type="password" id="regPassword" placeholder="Choose Password">
-        <select id="countrySelect">
-            <option value="">Select Country</option>
-            <option value="Pakistan">🇵🇰 Pakistan</option>
-            <option value="India">🇮🇳 India</option>
-            <option value="USA">🇺🇸 USA</option>
-            <option value="UK">🇬🇧 UK</option>
-            <option value="Canada">🇨🇦 Canada</option>
-            <option value="Australia">🇦🇺 Australia</option>
-            <option value="Germany">🇩🇪 Germany</option>
-            <option value="France">🇫🇷 France</option>
-            <option value="Turkey">🇹🇷 Turkey</option>
-            <option value="UAE">🇦🇪 UAE</option>
-            <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
-            <option value="Bangladesh">🇧🇩 Bangladesh</option>
-            <option value="Indonesia">🇮🇩 Indonesia</option>
-            <option value="Malaysia">🇲🇾 Malaysia</option>
-            <option value="Egypt">🇪🇬 Egypt</option>
-            <option value="Nigeria">🇳🇬 Nigeria</option>
-            <option value="South Africa">🇿🇦 South Africa</option>
-            <option value="Brazil">🇧🇷 Brazil</option>
-            <option value="Mexico">🇲🇽 Mexico</option>
-            <option value="China">🇨🇳 China</option>
-            <option value="Japan">🇯🇵 Japan</option>
-            <option value="South Korea">🇰🇷 South Korea</option>
-            <option value="Russia">🇷🇺 Russia</option>
-            <option value="Italy">🇮🇹 Italy</option>
-            <option value="Spain">🇪🇸 Spain</option>
-            <option value="Netherlands">🇳🇱 Netherlands</option>
-            <option value="Sweden">🇸🇪 Sweden</option>
-            <option value="Norway">🇳🇴 Norway</option>
-            <option value="Other">🌍 Other</option>
-        </select>
-        <button id="registerBtn" onclick="registerUser()">Create Account</button>
-    </div>
-</div>
+    <!-- THEME TOGGLE BUTTON -->
+    <button id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
 
-<!-- ADMIN PANEL (Hidden by default) -->
-    <div id="adminPanel" style="display:none;">
+    <!-- ANIMATED BACKGROUND -->
+    <div id="loginBackground">
+        <div class="mubble-text">Mubble</div>
+        <div class="mubble-text">Mubble</div>
+        <div class="mubble-text">Mubble</div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+        <div class="app-logo">Mubble</div>
+        <p class="tagline">Connect. Chat. Share.</p>
+
+        <div id="authTabs">
+            <button class="tab-btn active" onclick="showTab('login', this)">Login</button>
+            <button class="tab-btn" onclick="showTab('register', this)">Register</button>
+        </div>
+
+        <div id="loginForm" class="auth-form">
+            <input type="text" id="loginUsername" placeholder="Username" maxlength="20" autocomplete="off">
+            <input type="password" id="loginPassword" placeholder="Password" autocomplete="off">
+            <button id="loginBtn" onclick="loginUser()">Login</button>
+        </div>
+
+        <div id="registerForm" class="auth-form" style="display:none;">
+            <input type="text" id="regUsername" placeholder="Choose Username" maxlength="20" autocomplete="off">
+            <input type="password" id="regPassword" placeholder="Choose Password (min 4 chars)" autocomplete="off">
+            <select id="countrySelect">
+                <option value="">Select Country</option>
+                <option value="Pakistan">🇵🇰 Pakistan</option>
+                <option value="India">🇮🇳 India</option>
+                <option value="USA">🇺🇸 USA</option>
+                <option value="UK">🇬🇧 UK</option>
+                <option value="Canada">🇨🇦 Canada</option>
+                <option value="Australia">🇦🇺 Australia</option>
+                <option value="Germany">🇩🇪 Germany</option>
+                <option value="France">🇫🇷 France</option>
+                <option value="Turkey">🇹🇷 Turkey</option>
+                <option value="UAE">🇦🇪 UAE</option>
+                <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+                <option value="Bangladesh">🇧🇩 Bangladesh</option>
+                <option value="Indonesia">🇮🇩 Indonesia</option>
+                <option value="Malaysia">🇲🇾 Malaysia</option>
+                <option value="Egypt">🇪🇬 Egypt</option>
+                <option value="Nigeria">🇳🇬 Nigeria</option>
+                <option value="South Africa">🇿🇦 South Africa</option>
+                <option value="Brazil">🇧🇷 Brazil</option>
+                <option value="Mexico">🇲🇽 Mexico</option>
+                <option value="China">🇨🇳 China</option>
+                <option value="Japan">🇯🇵 Japan</option>
+                <option value="South Korea">🇰🇷 South Korea</option>
+                <option value="Russia">🇷🇺 Russia</option>
+                <option value="Italy">🇮🇹 Italy</option>
+                <option value="Spain">🇪🇸 Spain</option>
+                <option value="Netherlands">🇳🇱 Netherlands</option>
+                <option value="Sweden">🇸🇪 Sweden</option>
+                <option value="Norway">🇳🇴 Norway</option>
+                <option value="Other">🌍 Other</option>
+            </select>
+            <button id="registerBtn" onclick="registerUser()">Create Account</button>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel">
         <div id="adminHeader">
             <h2>🔐 Admin Panel</h2>
-            <button onclick="closeAdminPanel()">✕ Close</button>
+            <button onclick="closeAdminPanel()" style="background:linear-gradient(45deg,#ff6ec7,#8e6cff);color:white;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;">✕ Close</button>
         </div>
-        <div id="adminContent">
-            <h3>User Management</h3>
-            <div id="usersList"></div>
-        </div>
+        <div id="adminContent"></div>
     </div>
-    
-    <!-- Admin Button (Only visible for admin) -->
-    <button id="adminBtn" onclick="openAdminPanel()" style="display:none;">⚙️ Admin</button>
 
+    <button id="adminBtn" onclick="openAdminPanel()">⚙️ Admin</button>
+
+    <!-- CHAT SCREEN -->
     <div id="chatScreen">
         <div id="chatHeader">
-            <h2>💬 Group Chat</h2>
-            <span id="onlineCount">Online: 1</span>
+            <h2>💬 Mubble Chat</h2>
+            <span id="onlineCount">Online: 0</span>
         </div>
         <div id="messagesContainer"></div>
         <div id="inputArea">
-    <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
-    <button id="sendBtn" onclick="sendMessage()">Send</button>
-</div>
+            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";    
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
+    <script>
         // ============================================
-// COUNTRY FLAGS DATA
-// ============================================
-const countryFlags = {
-    'Pakistan': '🇵🇰', 'India': '🇮🇳', 'USA': '🇺🇸', 'UK': '🇬🇧', 
-    'Canada': '🇨🇦', 'Australia': '🇦🇺', 'Germany': '🇩🇪', 'France': '🇫🇷',
-    'Turkey': '🇹🇷', 'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦', 'Bangladesh': '🇧🇩',
-    'Indonesia': '🇮🇩', 'Malaysia': '🇲🇾', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬',
-    'South Africa': '🇿🇦', 'Brazil': '🇧🇷', 'Mexico': '🇲🇽', 'China': '🇨🇳',
-    'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Russia': '🇷🇺', 'Italy': '🇮🇹',
-    'Spain': '🇪🇸', 'Netherlands': '🇳🇱', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
-    'Other': '🌍'
-};
+        // THEME MANAGEMENT
+        // ============================================
+        function initTheme() {
+            const savedTheme = localStorage.getItem('mubble-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
 
-// Admin credentials
-const ADMIN_USERNAME = 'Umar';
-const ADMIN_PASSWORD = '12345';
-
-        // ============================================
-        // FIREBASE CONFIG - REPLACE THESE VALUES!
-        // ============================================
-       const firebaseConfig = {
-           apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
-           authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
-           projectId: "my-chat-app-2026-59e34",
-           storageBucket: "my-chat-app-2026-59e34.firebasestorage.app",
-           messagingSenderId: "571790875269",
-           appId: "1:571790875269:web:0ba9674e50caebf911a7ec"
-         };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        
-        let currentUser = "";
-        let currentCountry = "";
-        let isAdmin = false;
-        let messagesRef = collection(db, "messages");
-        let usersRef = collection(db, "users");
-        let unsubscribe = null;
-
-        // ============================================
-        // TAB SWITCHING
-        // ============================================
-        window.showTab = function(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
-            if (tab === 'login') {
-                document.getElementById('loginForm').style.display = 'block';
-                document.getElementById('registerForm').style.display = 'none';
-            } else {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('registerForm').style.display = 'block';
-            }
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('mubble-theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const toggle = document.getElementById('themeToggle');
+            toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+            toggle.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+        }
+
+        // Initialize theme on load
+        initTheme();
+
+        // ============================================
+        // FIREBASE & CHAT CONFIG
+        // ============================================
+        const countryFlags = {
+            'Pakistan': '🇵🇰', 'India': '🇮🇳', 'USA': '🇺🇸', 'UK': '🇬🇧',
+            'Canada': '🇨🇦', 'Australia': '🇦🇺', 'Germany': '🇩🇪', 'France': '🇫🇷',
+            'Turkey': '🇹🇷', 'UAE': '🇦🇪', 'Saudi Arabia': '🇸🇦', 'Bangladesh': '🇧🇩',
+            'Indonesia': '🇮🇩', 'Malaysia': '🇲🇾', 'Egypt': '🇪🇬', 'Nigeria': '🇳🇬',
+            'South Africa': '🇿🇦', 'Brazil': '🇧🇷', 'Mexico': '🇲🇽', 'China': '🇨🇳',
+            'Japan': '🇯🇵', 'South Korea': '🇰🇷', 'Russia': '🇷🇺', 'Italy': '🇮🇹',
+            'Spain': '🇪🇸', 'Netherlands': '🇳🇱', 'Sweden': '🇸🇪', 'Norway': '🇳🇴',
+            'Other': '🌍'
         };
 
-        // ============================================
-        // REGISTER USER
-        // ============================================
-        window.registerUser = async function() {
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const country = document.getElementById('countrySelect').value;
+        const ADMIN_USERNAME = 'Umar';
+        const ADMIN_PASSWORD = '12345';
 
-            if (!username || !password || !country) {
-                alert("Please fill all fields!");
-                return;
-            }
+        firebase.initializeApp({
+            apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
+            authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
+            projectId: "my-chat-app-2026-59e34",
+            storageBucket: "my-chat-app-2026-59e34.firebasestorage.app",
+            messagingSenderId: "571790875269",
+            appId: "1:571790875269:web:0ba9674e50caebf911a7ec"
+        });
 
-            if (password.length < 4) {
-                alert("Password must be at least 4 characters!");
-                return;
-            }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        let currentUser = "", currentCountry = "", isAdmin = false;
 
-            try {
-                // Check if username exists
-                const userQuery = query(usersRef, where("username", "==", username));
-                const querySnapshot = await getDocs(userQuery);
-                
-                if (!querySnapshot.empty) {
-                    alert("Username already taken! Choose another.");
-                    return;
-                }
-
-                // Create user
-                await signInAnonymously(auth);
-                
-                await addDoc(usersRef, {
-                    username: username,
-                    password: password, // In production, hash this!
-                    country: country,
-                    flag: countryFlags[country],
-                    createdAt: serverTimestamp(),
-                    isBlocked: false,
-                    isAdmin: false,
-                    userId: auth.currentUser.uid
-                });
-
-                alert("Account created! Please login.");
-                showTab('login');
-                
-            } catch (error) {
-                console.error("Register error:", error);
-                alert("Error creating account: " + error.message);
-            }
-        };
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 
         // ============================================
-        // LOGIN USER
+        // UI FUNCTIONS
         // ============================================
-        window.loginUser = async function() {
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value;
+        function showTab(tab, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = tab === 'login' ? 'none' : 'block';
+        }
 
-            if (!username || !password) {
-                alert("Please enter username and password!");
-                return;
-            }
-
-            // Check admin login first
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                await signInAnonymously(auth);
-                currentUser = ADMIN_USERNAME;
-                currentCountry = "Pakistan";
-                isAdmin = true;
-                
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('chatScreen').style.display = 'flex';
-                document.getElementById('adminBtn').style.display = 'block';
-                
-                listenToMessages();
-                setupChatInput();
-                return;
-            }
-
-            try {
-                await signInAnonymously(auth);
-                
-                // Find user in database
-                const userQuery = query(usersRef, where("username", "==", username));
-                const querySnapshot = await getDocs(userQuery);
-                
-                if (querySnapshot.empty) {
-                    alert("User not found!");
-                    return;
-                }
-
-                const userData = querySnapshot.docs[0].data();
-                
-                if (userData.password !== password) {
-                    alert("Wrong password!");
-                    return;
-                }
-
-                if (userData.isBlocked) {
-                    alert("Your account has been blocked by admin!");
-                    return;
-                }
-
-                currentUser = userData.username;
-                currentCountry = userData.country;
-                
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('chatScreen').style.display = 'flex';
-                
-                if (userData.isAdmin) {
-                    document.getElementById('adminBtn').style.display = 'block';
-                    isAdmin = true;
-                }
-                
-                listenToMessages();
-                setupChatInput();
-                
-            } catch (error) {
-                console.error("Login error:", error);
-                alert("Error logging in: " + error.message);
-            }
-        };
-
-        function setupChatInput() {
-            document.getElementById('messageInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
-            document.getElementById('messageInput').focus();
+        async function ensureAuth() {
+            if (auth.currentUser) return auth.currentUser;
+            const result = await auth.signInAnonymously();
+            return result.user;
         }
 
         // ============================================
-        // SEND MESSAGE
+        // LOGIN
         // ============================================
-        window.sendMessage = async function() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            
-            if (!text) return;
-            
+        async function loginUser() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+
+            if (!username || !password) { alert("Fill all fields!"); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Please wait...';
+
             try {
-                await addDoc(messagesRef, {
-                    text: text,
+                await ensureAuth();
+
+                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                    currentUser = ADMIN_USERNAME;
+                    currentCountry = "Pakistan";
+                    isAdmin = true;
+                    enterChat();
+                    return;
+                }
+
+                const snap = await db.collection("users").where("username", "==", username).get();
+
+                if (snap.empty) { alert("User not found!"); btn.disabled = false; btn.textContent = 'Login'; return; }
+
+                const data = snap.docs[0].data();
+                if (data.password !== password) { alert("Wrong password!"); btn.disabled = false; btn.textContent = 'Login'; return; }
+                if (data.isBlocked) { alert("Account blocked!"); btn.disabled = false; btn.textContent = 'Login'; return; }
+
+                currentUser = data.username;
+                currentCountry = data.country;
+                isAdmin = data.isAdmin || false;
+                enterChat();
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+        }
+
+        // ============================================
+        // REGISTER
+        // ============================================
+        async function registerUser() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const country = document.getElementById('countrySelect').value;
+            const btn = document.getElementById('registerBtn');
+
+            if (!username || !password || !country) { alert("Fill all fields!"); return; }
+            if (password.length < 4) { alert("Password too short!"); return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const existing = await db.collection("users").where("username", "==", username).get();
+                if (!existing.empty) { alert("Username taken!"); btn.disabled = false; btn.textContent = 'Create Account'; return; }
+
+                const user = await ensureAuth();
+
+                await db.collection("users").add({
+                    username, password, country,
+                    flag: countryFlags[country],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    isBlocked: false, isAdmin: false,
+                    userId: user.uid
+                });
+
+                alert("Account created! Please login.");
+                showTab('login', document.querySelectorAll('.tab-btn')[0]);
+                document.getElementById('loginUsername').value = username;
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        }
+
+        // ============================================
+        // ENTER CHAT
+        // ============================================
+        function enterChat() {
+            document.body.classList.add('chat-active');
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('loginBackground').style.display = 'none';
+            document.getElementById('chatScreen').style.display = 'flex';
+            
+            if (isAdmin) document.getElementById('adminBtn').style.display = 'block';
+
+            if (auth.currentUser) {
+                db.collection("onlineUsers").doc(auth.currentUser.uid).set({
                     username: currentUser,
                     country: currentCountry,
                     flag: countryFlags[currentCountry] || '🌍',
-                    timestamp: serverTimestamp(),
-                    userId: auth.currentUser.uid,
-                    isAdmin: isAdmin
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
-                input.value = '';
-            } catch (error) {
-                console.error("Error sending message:", error);
-                alert("Failed to send message. Please try again.");
             }
-        };
+
+            listenMessages();
+            setupInput();
+            listenOnline();
+        }
+
+        function setupInput() {
+            const input = document.getElementById('messageInput');
+            input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+            setTimeout(() => input.focus(), 100);
+        }
 
         // ============================================
-        // LISTEN TO MESSAGES
+        // CHAT FUNCTIONS
         // ============================================
-        function listenToMessages() {
-            const q = query(messagesRef, orderBy("timestamp", "asc"));
-            
-            unsubscribe = onSnapshot(q, (snapshot) => {
-                const container = document.getElementById('messagesContainer');
-                
-                snapshot.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        const msg = change.doc.data();
-                        displayMessage(msg);
-                    }
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                await db.collection("messages").add({
+                    text, username: currentUser, country: currentCountry,
+                    flag: countryFlags[currentCountry] || '🌍',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    userId: auth.currentUser ? auth.currentUser.uid : 'unknown',
+                    isAdmin
                 });
-                
+                input.value = '';
+            } catch (err) {
+                alert("Failed to send: " + err.message);
+            }
+        }
+
+        function listenMessages() {
+            db.collection("messages").orderBy("timestamp", "asc").onSnapshot((snap) => {
+                const container = document.getElementById('messagesContainer');
+                snap.docChanges().forEach((change) => {
+                    if (change.type === "added") showMessage(change.doc.data());
+                });
                 container.scrollTop = container.scrollHeight;
             });
         }
 
-        function displayMessage(msg) {
+        function showMessage(msg) {
             const container = document.getElementById('messagesContainer');
             const isMe = msg.username === currentUser;
-            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
             
-            const adminBadge = msg.isAdmin ? '👑 ' : '';
-            const flag = msg.flag || '🌍';
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isMe ? 'my-message' : ''}`;
-            messageDiv.innerHTML = `
+            const div = document.createElement('div');
+            div.className = 'message ' + (isMe ? 'my-message' : '');
+            div.innerHTML = `
                 <div class="message-header">
-                    <span class="username">
-                        <span class="user-flag-small">${flag}</span>
-                        ${adminBadge}${msg.username}
-                    </span>
+                    <span class="username">${msg.flag || '🌍'} ${msg.isAdmin ? '👑 ' : ''}${msg.username}</span>
                     <span class="timestamp">${time}</span>
                 </div>
                 <div class="message-bubble">${escapeHtml(msg.text)}</div>
             `;
-            
-            container.appendChild(messageDiv);
+            container.appendChild(div);
+        }
+
+        function listenOnline() {
+            db.collection("onlineUsers").onSnapshot((snap) => {
+                document.getElementById('onlineCount').textContent = `Online: ${snap.size}`;
+            });
         }
 
         // ============================================
-        // ADMIN PANEL FUNCTIONS
+        // ADMIN PANEL
         // ============================================
-        window.openAdminPanel = function() {
+        function openAdminPanel() {
             document.getElementById('adminPanel').style.display = 'flex';
-            loadUsersList();
-        };
+            loadUsers();
+        }
 
-        window.closeAdminPanel = function() {
+        function closeAdminPanel() {
             document.getElementById('adminPanel').style.display = 'none';
-        };
+        }
 
-        async function loadUsersList() {
-            const container = document.getElementById('usersList');
-            container.innerHTML = 'Loading...';
+        async function loadUsers() {
+            const container = document.getElementById('adminContent');
+            container.innerHTML = '<h3>User Management</h3>';
             
             try {
-                const querySnapshot = await getDocs(usersRef);
-                container.innerHTML = '';
-                
-                querySnapshot.forEach((doc) => {
+                const snap = await db.collection("users").get();
+                snap.forEach((doc) => {
                     const user = doc.data();
-                    const userDiv = document.createElement('div');
-                    userDiv.className = 'user-item';
-                    userDiv.innerHTML = `
-                        <div class="user-info">
-                            <span class="user-flag">${user.flag || '🌍'}</span>
-                            <span class="user-name">${user.username} ${user.isAdmin ? '👑' : ''}</span>
-                        </div>
-                        <div class="user-actions">
-                            ${user.isBlocked ? 
-                                `<button class="btn-unblock" onclick="unblockUser('${doc.id}')">Unblock</button>` :
-                                `<button class="btn-block" onclick="blockUser('${doc.id}')">Block</button>`
-                            }
-                        </div>
+                    const div = document.createElement('div');
+                    div.className = 'user-item';
+                    div.innerHTML = `
+                        <div>${user.flag || '🌍'} ${user.username} ${user.isAdmin ? '👑' : ''}</div>
+                        <button class="${user.isBlocked ? 'btn-unblock' : 'btn-block'}" onclick="${user.isBlocked ? 'unblock' : 'block'}User('${doc.id}')">${user.isBlocked ? 'Unblock' : 'Block'}</button>
                     `;
-                    container.appendChild(userDiv);
+                    container.appendChild(div);
                 });
-            } catch (error) {
-                container.innerHTML = 'Error loading users';
+            } catch (e) {
+                container.innerHTML += 'Error loading users';
             }
         }
 
-        window.blockUser = async function(userId) {
-            try {
-                await updateDoc(doc(db, "users", userId), {
-                    isBlocked: true
-                });
-                alert("User blocked!");
-                loadUsersList();
-            } catch (error) {
-                alert("Error blocking user");
-            }
-        };
+        async function blockUser(id) {
+            await db.collection("users").doc(id).update({ isBlocked: true });
+            loadUsers();
+        }
 
-        window.unblockUser = async function(userId) {
-            try {
-                await updateDoc(doc(db, "users", userId), {
-                    isBlocked: false
-                });
-                alert("User unblocked!");
-                loadUsersList();
-            } catch (error) {
-                alert("Error unblocking user");
-            }
-        };
+        async function unblockUser(id) {
+            await db.collection("users").doc(id).update({ isBlocked: false });
+            loadUsers();
+        }
 
         function escapeHtml(text) {
             const div = document.createElement('div');
@@ -1006,20 +1047,19 @@ const ADMIN_PASSWORD = '12345';
             return div.innerHTML;
         }
 
-        // Enter key on login inputs
-        document.getElementById('loginUsername').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.loginUser();
+        // ============================================
+        // CLEANUP
+        // ============================================
+        window.addEventListener('beforeunload', () => {
+            if (auth.currentUser) db.collection("onlineUsers").doc(auth.currentUser.uid).delete().catch(()=>{});
         });
-        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.loginUser();
-        });
-        document.getElementById('regUsername').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.registerUser();
-        });
-        document.getElementById('regPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') window.registerUser();
-        });
-        </script>
+
+        // Enter key handlers
+        document.getElementById('loginUsername').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') loginUser(); });
+        document.getElementById('regUsername').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('regPassword').focus(); });
+        document.getElementById('regPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') registerUser(); });
+    </script>
 
 </body>
 </html>
