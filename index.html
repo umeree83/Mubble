@@ -409,15 +409,6 @@
             font-weight: 600;
         }
 
-        #onlineCount {
-            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
-            color: white;
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
         #messagesContainer {
             flex: 1;
             overflow-y: auto;
@@ -428,6 +419,7 @@
         .message {
             margin-bottom: 15px;
             animation: fadeIn 0.3s ease;
+            position: relative;
         }
 
         @keyframes fadeIn {
@@ -466,6 +458,7 @@
             color: var(--message-text);
             border: 1px solid rgba(142, 108, 255, 0.2);
             transition: all 0.3s;
+            position: relative;
         }
 
         .my-message {
@@ -480,6 +473,95 @@
             background: linear-gradient(45deg, #ff6ec7, #8e6cff);
             color: white;
             border: none;
+        }
+
+        /* Message Status Indicators */
+        .message-status {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+
+        .my-message .message-status {
+            justify-content: flex-end;
+        }
+
+        .status-icon {
+            font-size: 12px;
+        }
+
+        .status-read {
+            color: #4fc3f7;
+        }
+
+        /* Delete Button */
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .message:hover .delete-btn {
+            display: flex;
+            opacity: 1;
+        }
+
+        .my-message .delete-btn {
+            right: auto;
+            left: -8px;
+        }
+
+        /* Typing Indicator */
+        #typingIndicator {
+            padding: 10px 20px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            background: var(--glass-bg);
+            border-top: 1px solid rgba(142, 108, 255, 0.1);
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-purple);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
         }
 
         #inputArea {
@@ -735,9 +817,17 @@
     <div id="chatScreen">
         <div id="chatHeader">
             <h2>💬 Mubble Chat</h2>
-            <span id="onlineCount">Online: 0</span>
+            <span id="onlineCount" style="display: none;">Online: 0</span>
         </div>
         <div id="messagesContainer"></div>
+        <div id="typingIndicator">
+            <span id="typingText">Someone is typing</span>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
         <div id="inputArea">
             <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
             <button id="sendBtn" onclick="sendMessage()">Send</button>
@@ -807,6 +897,10 @@
         const auth = firebase.auth();
         
         let currentUser = "", currentCountry = "", isAdmin = false;
+        let typingTimeout = null;
+        let messagesListener = null;
+        let typingListener = null;
+        let readReceiptsListener = null;
 
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 
@@ -923,24 +1017,66 @@
             
             if (isAdmin) document.getElementById('adminBtn').style.display = 'block';
 
-            if (auth.currentUser) {
-                db.collection("onlineUsers").doc(auth.currentUser.uid).set({
-                    username: currentUser,
-                    country: currentCountry,
-                    flag: countryFlags[currentCountry] || '🌍',
-                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-
             listenMessages();
             setupInput();
-            listenOnline();
+            listenTyping();
+            updateReadReceipts();
         }
 
         function setupInput() {
             const input = document.getElementById('messageInput');
             input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+            input.addEventListener('input', handleTyping);
             setTimeout(() => input.focus(), 100);
+        }
+
+        // ============================================
+        // TYPING INDICATOR
+        // ============================================
+        function handleTyping() {
+            if (!auth.currentUser) return;
+            
+            // Set typing status
+            db.collection("typing").doc(auth.currentUser.uid).set({
+                username: currentUser,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Clear previous timeout
+            if (typingTimeout) clearTimeout(typingTimeout);
+
+            // Remove typing status after 3 seconds
+            typingTimeout = setTimeout(() => {
+                db.collection("typing").doc(auth.currentUser.uid).delete().catch(() => {});
+            }, 3000);
+        }
+
+        function listenTyping() {
+            typingListener = db.collection("typing").onSnapshot((snap) => {
+                const typingUsers = [];
+                snap.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.username !== currentUser) {
+                        typingUsers.push(data.username);
+                    }
+                });
+
+                const indicator = document.getElementById('typingIndicator');
+                const typingText = document.getElementById('typingText');
+                
+                if (typingUsers.length > 0) {
+                    indicator.style.display = 'flex';
+                    if (typingUsers.length === 1) {
+                        typingText.textContent = `${typingUsers[0]} is typing`;
+                    } else if (typingUsers.length === 2) {
+                        typingText.textContent = `${typingUsers[0]} and ${typingUsers[1]} are typing`;
+                    } else {
+                        typingText.textContent = `${typingUsers.length} people are typing`;
+                    }
+                } else {
+                    indicator.style.display = 'none';
+                }
+            });
         }
 
         // ============================================
@@ -952,13 +1088,22 @@
             if (!text) return;
 
             try {
-                await db.collection("messages").add({
-                    text, username: currentUser, country: currentCountry,
+                const messageRef = await db.collection("messages").add({
+                    text, 
+                    username: currentUser, 
+                    country: currentCountry,
                     flag: countryFlags[currentCountry] || '🌍',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     userId: auth.currentUser ? auth.currentUser.uid : 'unknown',
-                    isAdmin
+                    isAdmin,
+                    status: 'sent',
+                    readBy: [currentUser] // Sender has read their own message
                 });
+                
+                // Clear typing indicator
+                if (typingTimeout) clearTimeout(typingTimeout);
+                db.collection("typing").doc(auth.currentUser.uid).delete().catch(() => {});
+                
                 input.value = '';
             } catch (err) {
                 alert("Failed to send: " + err.message);
@@ -966,36 +1111,152 @@
         }
 
         function listenMessages() {
-            db.collection("messages").orderBy("timestamp", "asc").onSnapshot((snap) => {
+            if (messagesListener) messagesListener();
+            
+            messagesListener = db.collection("messages").orderBy("timestamp", "asc").onSnapshot((snap) => {
                 const container = document.getElementById('messagesContainer');
+                
                 snap.docChanges().forEach((change) => {
-                    if (change.type === "added") showMessage(change.doc.data());
+                    if (change.type === "added") {
+                        showMessage(change.doc.id, change.doc.data());
+                    } else if (change.type === "modified") {
+                        updateMessage(change.doc.id, change.doc.data());
+                    } else if (change.type === "removed") {
+                        removeMessageElement(change.doc.id);
+                    }
                 });
+                
                 container.scrollTop = container.scrollHeight;
             });
         }
 
-        function showMessage(msg) {
+        function showMessage(id, msg) {
             const container = document.getElementById('messagesContainer');
             const isMe = msg.username === currentUser;
             const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
             
+            // Check if message already exists
+            if (document.getElementById(`msg-${id}`)) return;
+
             const div = document.createElement('div');
+            div.id = `msg-${id}`;
             div.className = 'message ' + (isMe ? 'my-message' : '');
+            
+            const statusHtml = isMe ? getStatusHtml(msg) : '';
+            const deleteBtn = (isMe || isAdmin) ? `<button class="delete-btn" onclick="deleteMessage('${id}')" title="Delete message">✕</button>` : '';
+            
             div.innerHTML = `
+                ${deleteBtn}
                 <div class="message-header">
                     <span class="username">${msg.flag || '🌍'} ${msg.isAdmin ? '👑 ' : ''}${msg.username}</span>
                     <span class="timestamp">${time}</span>
                 </div>
                 <div class="message-bubble">${escapeHtml(msg.text)}</div>
+                ${statusHtml}
             `;
             container.appendChild(div);
+
+            // Mark as read if not my message
+            if (!isMe) {
+                markAsRead(id, msg);
+            }
         }
 
-        function listenOnline() {
-            db.collection("onlineUsers").onSnapshot((snap) => {
-                document.getElementById('onlineCount').textContent = `Online: ${snap.size}`;
-            });
+        function updateMessage(id, msg) {
+            const el = document.getElementById(`msg-${id}`);
+            if (!el) return;
+
+            const isMe = msg.username === currentUser;
+            if (isMe) {
+                const statusDiv = el.querySelector('.message-status');
+                if (statusDiv) {
+                    statusDiv.outerHTML = getStatusHtml(msg);
+                }
+            }
+        }
+
+        function getStatusHtml(msg) {
+            let statusIcon = '✓';
+            let statusClass = '';
+            let statusText = 'Sent';
+            
+            if (msg.status === 'delivered') {
+                statusIcon = '✓✓';
+                statusText = 'Delivered';
+            } else if (msg.status === 'read') {
+                statusIcon = '✓✓';
+                statusClass = 'status-read';
+                statusText = 'Read';
+            }
+
+            const readCount = msg.readBy ? msg.readBy.length - 1 : 0; // Exclude sender
+            
+            return `
+                <div class="message-status">
+                    <span class="status-icon ${statusClass}">${statusIcon}</span>
+                    <span>${statusText}${readCount > 0 ? ` (${readCount})` : ''}</span>
+                </div>
+            `;
+        }
+
+        function removeMessageElement(id) {
+            const el = document.getElementById(`msg-${id}`);
+            if (el) {
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.8)';
+                setTimeout(() => el.remove(), 300);
+            }
+        }
+
+        // ============================================
+        // READ RECEIPTS
+        // ============================================
+        async function markAsRead(messageId, msgData) {
+            if (!auth.currentUser) return;
+            
+            const readBy = msgData.readBy || [];
+            if (!readBy.includes(currentUser)) {
+                readBy.push(currentUser);
+                
+                // Update status based on read count
+                let newStatus = msgData.status;
+                if (readBy.length > 1) {
+                    newStatus = 'read';
+                } else if (msgData.status === 'sent') {
+                    newStatus = 'delivered';
+                }
+
+                await db.collection("messages").doc(messageId).update({
+                    readBy: readBy,
+                    status: newStatus
+                });
+            }
+        }
+
+        function updateReadReceipts() {
+            // Listen for read receipt updates on messages sent by current user
+            readReceiptsListener = db.collection("messages")
+                .where("username", "==", currentUser)
+                .onSnapshot((snap) => {
+                    snap.docChanges().forEach((change) => {
+                        if (change.type === "modified") {
+                            updateMessage(change.doc.id, change.doc.data());
+                        }
+                    });
+                });
+        }
+
+        // ============================================
+        // MESSAGE DELETE
+        // ============================================
+        async function deleteMessage(messageId) {
+            if (!confirm('Are you sure you want to delete this message?')) return;
+            
+            try {
+                await db.collection("messages").doc(messageId).delete();
+            } catch (err) {
+                alert("Failed to delete message: " + err.message);
+            }
         }
 
         // ============================================
@@ -1051,7 +1312,9 @@
         // CLEANUP
         // ============================================
         window.addEventListener('beforeunload', () => {
-            if (auth.currentUser) db.collection("onlineUsers").doc(auth.currentUser.uid).delete().catch(()=>{});
+            if (auth.currentUser) {
+                db.collection("typing").doc(auth.currentUser.uid).delete().catch(() => {});
+            }
         });
 
         // Enter key handlers
