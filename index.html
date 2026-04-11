@@ -643,19 +643,6 @@
             color: var(--accent-pink);
         }
 
-        /* Countdown Timer */
-        #countdownTimer {
-            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
         #inputArea {
             padding: 12px 15px;
             display: flex;
@@ -707,69 +694,6 @@
             transform: scale(1.05);
         }
 
-        /* ADMIN PANEL */
-        #adminPanel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            background: var(--chat-bg);
-            transition: background 0.3s;
-        }
-
-        #adminHeader {
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--accent-pink);
-            background: var(--chat-header-bg);
-            color: var(--chat-header-text);
-            padding-left: 60px;  /* Space for theme button */
-        }
-
-        #adminHeader h2 {
-            color: var(--accent-pink);
-            font-size: 18px;
-        }
-
-        #adminBtn {
-            position: fixed;
-            bottom: 80px;
-            right: 15px;
-            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
-            color: white;
-            border: none;
-            padding: 12px 18px;
-            border-radius: 25px;
-            cursor: pointer;
-            z-index: 100;
-            display: none;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 5px 20px rgba(142, 108, 255, 0.4);
-        }
-
-        .user-item {
-            padding: 15px;
-            margin: 10px 15px;
-            border-radius: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(142, 108, 255, 0.2);
-            background: var(--message-bg);
-            color: var(--message-text);
-            transition: all 0.3s;
-        }
-
-        .btn-block { background: #e74c3c; color: white; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; }
-        .btn-unblock { background: #27ae60; color: white; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; }
-
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -815,10 +739,6 @@
             }
 
             #chatHeader {
-                padding-left: 55px;
-            }
-
-            #adminHeader {
                 padding-left: 55px;
             }
 
@@ -915,25 +835,11 @@
         </div>
     </div>
 
-    <!-- ADMIN PANEL -->
-    <div id="adminPanel">
-        <div id="adminHeader">
-            <h2>🔐 Admin Panel</h2>
-            <button onclick="closeAdminPanel()" style="background:linear-gradient(45deg,#ff6ec7,#8e6cff);color:white;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;">✕ Close</button>
-        </div>
-        <div id="adminContent"></div>
-    </div>
-
-    <button id="adminBtn" onclick="openAdminPanel()">⚙️ Admin</button>
-
     <!-- CHAT SCREEN -->
     <div id="chatScreen">
         <div id="chatHeader">
             <h2>💬 Mubble Chat</h2>
-            <div id="countdownTimer">
-                <span>⏱️</span>
-                <span id="timerText">24:00:00</span>
-            </div>
+            <span id="onlineCount">Online: 0</span>
         </div>
         <div id="messagesContainer"></div>
         <div id="replyPreview">
@@ -995,9 +901,6 @@
             'Other': '🌍'
         };
 
-        const ADMIN_USERNAME = 'Umar';
-        const ADMIN_PASSWORD = '12345';
-
         firebase.initializeApp({
             apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
             authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
@@ -1010,11 +913,10 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         
-        let currentUser = "", currentCountry = "", isAdmin = false;
+        let currentUser = "", currentCountry = "";
         let replyingTo = null;
         let messagesListener = null;
         let readReceiptsListener = null;
-        let countdownInterval = null;
 
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 
@@ -1050,14 +952,6 @@
             try {
                 await ensureAuth();
 
-                if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                    currentUser = ADMIN_USERNAME;
-                    currentCountry = "Pakistan";
-                    isAdmin = true;
-                    enterChat();
-                    return;
-                }
-
                 const snap = await db.collection("users").where("username", "==", username).get();
 
                 if (snap.empty) { alert("User not found!"); btn.disabled = false; btn.textContent = 'Login'; return; }
@@ -1068,7 +962,6 @@
 
                 currentUser = data.username;
                 currentCountry = data.country;
-                isAdmin = data.isAdmin || false;
                 enterChat();
 
             } catch (err) {
@@ -1103,7 +996,7 @@
                     username, password, country,
                     flag: countryFlags[country],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    isBlocked: false, isAdmin: false,
+                    isBlocked: false,
                     userId: user.uid
                 });
 
@@ -1128,68 +1021,16 @@
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('loginBackground').style.display = 'none';
             document.getElementById('chatScreen').style.display = 'flex';
-            
-            if (isAdmin) document.getElementById('adminBtn').style.display = 'block';
 
             listenMessages();
             setupInput();
             updateReadReceipts();
-            startCountdown();
-            checkAndDeleteOldMessages();
         }
 
         function setupInput() {
             const input = document.getElementById('messageInput');
             input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
             setTimeout(() => input.focus(), 100);
-        }
-
-        // ============================================
-        // 24 HOUR AUTO-DELETE FEATURE
-        // ============================================
-        function startCountdown() {
-            updateCountdownDisplay();
-            countdownInterval = setInterval(() => {
-                updateCountdownDisplay();
-                checkAndDeleteOldMessages();
-            }, 1000);
-        }
-
-        function updateCountdownDisplay() {
-            const now = new Date();
-            const nextMidnight = new Date(now);
-            nextMidnight.setHours(24, 0, 0, 0);
-            
-            const diff = nextMidnight - now;
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            const timerText = document.getElementById('timerText');
-            timerText.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-
-        async function checkAndDeleteOldMessages() {
-            const now = new Date();
-            const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-            
-            try {
-                const oldMessages = await db.collection("messages")
-                    .where("timestamp", "<", twentyFourHoursAgo)
-                    .get();
-                
-                const batch = db.batch();
-                oldMessages.forEach((doc) => {
-                    batch.delete(doc.ref);
-                });
-                
-                if (oldMessages.size > 0) {
-                    await batch.commit();
-                    console.log(`Deleted ${oldMessages.size} old messages`);
-                }
-            } catch (err) {
-                console.error("Error deleting old messages:", err);
-            }
         }
 
         // ============================================
@@ -1227,7 +1068,6 @@
                     flag: countryFlags[currentCountry] || '🌍',
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     userId: auth.currentUser ? auth.currentUser.uid : 'unknown',
-                    isAdmin,
                     status: 'sent',
                     readBy: [currentUser]
                 };
@@ -1252,11 +1092,7 @@
         function listenMessages() {
             if (messagesListener) messagesListener();
             
-            // Only listen to messages from last 24 hours
-            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-            
             messagesListener = db.collection("messages")
-                .where("timestamp", ">", twentyFourHoursAgo)
                 .orderBy("timestamp", "asc")
                 .onSnapshot((snap) => {
                     const container = document.getElementById('messagesContainer');
@@ -1302,7 +1138,7 @@
             div.innerHTML = `
                 <button class="reply-btn" onclick="startReply('${id}', '${msg.username}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')" title="Reply">↩️</button>
                 <div class="message-header">
-                    <span class="username">${msg.flag || '🌍'} ${msg.isAdmin ? '👑 ' : ''}${msg.username}</span>
+                    <span class="username">${msg.flag || '🌍'} ${msg.username}</span>
                     <span class="timestamp">${time}</span>
                 </div>
                 ${replyHtml}
@@ -1404,61 +1240,11 @@
                 });
         }
 
-        // ============================================
-        // ADMIN PANEL
-        // ============================================
-        function openAdminPanel() {
-            document.getElementById('adminPanel').style.display = 'flex';
-            loadUsers();
-        }
-
-        function closeAdminPanel() {
-            document.getElementById('adminPanel').style.display = 'none';
-        }
-
-        async function loadUsers() {
-            const container = document.getElementById('adminContent');
-            container.innerHTML = '<h3>User Management</h3>';
-            
-            try {
-                const snap = await db.collection("users").get();
-                snap.forEach((doc) => {
-                    const user = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'user-item';
-                    div.innerHTML = `
-                        <div>${user.flag || '🌍'} ${user.username} ${user.isAdmin ? '👑' : ''}</div>
-                        <button class="${user.isBlocked ? 'btn-unblock' : 'btn-block'}" onclick="${user.isBlocked ? 'unblock' : 'block'}User('${doc.id}')">${user.isBlocked ? 'Unblock' : 'Block'}</button>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch (e) {
-                container.innerHTML += 'Error loading users';
-            }
-        }
-
-        async function blockUser(id) {
-            await db.collection("users").doc(id).update({ isBlocked: true });
-            loadUsers();
-        }
-
-        async function unblockUser(id) {
-            await db.collection("users").doc(id).update({ isBlocked: false });
-            loadUsers();
-        }
-
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
-
-        // ============================================
-        // CLEANUP
-        // ============================================
-        window.addEventListener('beforeunload', () => {
-            if (countdownInterval) clearInterval(countdownInterval);
-        });
 
         // Enter key handlers
         document.getElementById('loginUsername').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
