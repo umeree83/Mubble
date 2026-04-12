@@ -121,6 +121,42 @@
         }
 
         /* ============================================
+           PROFILE BUTTON - TOP RIGHT CORNER
+           ============================================ */
+        #profileBtn {
+            position: fixed;
+            top: 65px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid var(--accent-purple);
+            background: var(--glass-bg);
+            cursor: pointer;
+            z-index: 1000;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(142, 108, 255, 0.4);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        #profileBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(142, 108, 255, 0.6);
+        }
+
+        #profileBtn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Chat active state for profile button */
+        .chat-active #profileBtn {
+            display: block;
+        }
+
+        /* ============================================
            ANIMATED BACKGROUND - WORKS ON BOTH THEMES
            ============================================ */
         #loginBackground {
@@ -694,6 +730,291 @@
             transform: scale(1.05);
         }
 
+        /* ============================================
+           PROFILE PANEL STYLES
+           ============================================ */
+        #profilePanel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            background: var(--chat-bg);
+            z-index: 1000;
+            transition: right 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.3);
+        }
+
+        #profilePanel.open {
+            right: 0;
+        }
+
+        #profileHeader {
+            padding: 20px;
+            background: var(--chat-header-bg);
+            border-bottom: 2px solid rgba(142, 108, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #profileHeader h2 {
+            color: var(--chat-header-text);
+            font-size: 20px;
+        }
+
+        #closeProfile {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        #closeProfile:hover {
+            color: var(--accent-pink);
+        }
+
+        #profileContent {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 20px;
+        }
+
+        .profile-section {
+            margin-bottom: 30px;
+        }
+
+        .profile-section-title {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* Profile Picture Section */
+        .profile-pic-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-pic-large {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-purple);
+            object-fit: cover;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 20px rgba(142, 108, 255, 0.3);
+        }
+
+        .change-pic-btn {
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(142, 108, 255, 0.3);
+        }
+
+        .change-pic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(142, 108, 255, 0.4);
+        }
+
+        /* Avatar Selection Modal */
+        #avatarModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        #avatarModal.active {
+            display: flex;
+        }
+
+        .avatar-modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .avatar-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .avatar-modal-header h3 {
+            color: var(--chat-header-text);
+            font-size: 20px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 15px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-purple);
+        }
+
+        .avatar-option.selected {
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 20px rgba(255, 110, 199, 0.5);
+        }
+
+        .avatar-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-check {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-pink);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .avatar-option.selected .avatar-check {
+            display: flex;
+        }
+
+        /* Form Fields */
+        .profile-field {
+            margin-bottom: 20px;
+        }
+
+        .profile-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .profile-field input,
+        .profile-field textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(142, 108, 255, 0.2);
+            border-radius: 12px;
+            font-size: 15px;
+            background: var(--input-bg);
+            color: var(--text-dark);
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .profile-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .profile-field input:focus,
+        .profile-field textarea:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(142, 108, 255, 0.2);
+        }
+
+        .save-profile-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(142, 108, 255, 0.3);
+        }
+
+        .save-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(142, 108, 255, 0.4);
+        }
+
+        .save-profile-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* User Info Display in Messages */
+        .user-avatar-small {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-purple);
+            object-fit: cover;
+            margin-right: 8px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+        }
+
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -715,6 +1036,14 @@
                 width: 36px;
                 height: 36px;
                 font-size: 18px;
+            }
+
+            /* Profile button mobile positioning */
+            #profileBtn {
+                top: 55px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
             }
 
             .mubble-text {
@@ -755,6 +1084,14 @@
             .message:not(.my-message) .reply-btn {
                 right: -30px;
             }
+
+            #profilePanel {
+                max-width: 100%;
+            }
+
+            .avatar-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @supports (-webkit-touch-callout: none) {
@@ -772,6 +1109,11 @@
 
     <!-- THEME TOGGLE BUTTON -->
     <button id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+
+    <!-- PROFILE BUTTON - TOP RIGHT CORNER -->
+    <button id="profileBtn" onclick="openProfile()" title="My Profile">
+        <img src="https://4kwallpapers.com/images/wallpapers/toji-fushiguro-3840x2160-15228.jpg" alt="Profile" id="profileBtnImg">
+    </button>
 
     <!-- ANIMATED BACKGROUND -->
     <div id="loginBackground">
@@ -854,6 +1196,63 @@
         </div>
     </div>
 
+    <!-- Profile Panel -->
+    <div id="profilePanel">
+        <div id="profileHeader">
+            <h2>👤 My Profile</h2>
+            <button id="closeProfile" onclick="closeProfile()">✕</button>
+        </div>
+        <div id="profileContent">
+            <!-- Profile Picture Section -->
+            <div class="profile-section">
+                <div class="profile-pic-container">
+                    <img src="https://4kwallpapers.com/images/wallpapers/toji-fushiguro-3840x2160-15228.jpg" alt="Profile" class="profile-pic-large" id="profilePicLarge">
+                    <br>
+                    <button class="change-pic-btn" onclick="openAvatarModal()">📷 Change Profile Picture</button>
+                </div>
+            </div>
+
+            <!-- Username Section -->
+            <div class="profile-section">
+                <div class="profile-section-title">Username</div>
+                <div class="profile-field">
+                    <input type="text" id="profileUsername" placeholder="Your username" maxlength="20">
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="profile-section">
+                <div class="profile-section-title">Bio</div>
+                <div class="profile-field">
+                    <textarea id="profileBio" placeholder="Tell us about yourself... (max 150 characters)" maxlength="150"></textarea>
+                </div>
+            </div>
+
+            <!-- Country Section (Read-only display) -->
+            <div class="profile-section">
+                <div class="profile-section-title">Country</div>
+                <div class="profile-field">
+                    <input type="text" id="profileCountry" readonly style="background: rgba(142, 108, 255, 0.1); cursor: not-allowed;">
+                </div>
+            </div>
+
+            <button class="save-profile-btn" onclick="saveProfile()">💾 Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div id="avatarModal">
+        <div class="avatar-modal-content">
+            <div class="avatar-modal-header">
+                <h3>Choose Your Avatar</h3>
+                <button class="close-modal" onclick="closeAvatarModal()">✕</button>
+            </div>
+            <div class="avatar-grid" id="avatarGrid">
+                <!-- Avatars will be inserted here by JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -901,6 +1300,40 @@
             'Other': '🌍'
         };
 
+        // 6 New 4K Profile Pictures - Toji Zenin, Gojo Satoru, Maki Zenin, Gwen Spider-Girl, Spider-Man, Moon
+        const defaultAvatars = [
+            {
+                id: 'avatar1',
+                url: 'https://4kwallpapers.com/images/wallpapers/toji-fushiguro-3840x2160-15228.jpg',
+                name: 'Toji Zenin'
+            },
+            {
+                id: 'avatar2',
+                url: 'https://4kwallpapers.com/images/wallpapers/satoru-gojo-jujutsu-3840x2160-9292.jpg',
+                name: 'Gojo Satoru'
+            },
+            {
+                id: 'avatar3',
+                url: 'https://mir-s3-cdn-cf.behance.net/project_modules/1400_webp/3a02d8185942069.656ce39236622.png',
+                name: 'Maki Zenin'
+            },
+            {
+                id: 'avatar4',
+                url: 'https://c4.wallpaperflare.com/wallpaper/879/359/628/lee-jeehyung-spider-gwen-hd-wallpaper-preview.jpg',
+                name: 'Gwen Spider-Girl'
+            },
+            {
+                id: 'avatar5',
+                url: 'https://wallpapers.com/images/featured/4k-spider-man-ph3fw6k03ddbmbmh.jpg',
+                name: 'Spider-Man'
+            },
+            {
+                id: 'avatar6',
+                url: 'https://4kwallpapers.com/images/wallpapers/full-moon-forest-night-dark-starry-sky-5k-8k-2160x3840-1684.jpg',
+                name: 'Moon'
+            }
+        ];
+
         firebase.initializeApp({
             apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
             authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
@@ -913,10 +1346,12 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         
-        let currentUser = "", currentCountry = "";
+        let currentUser = "", currentCountry = "", currentUserDocId = "";
+        let userProfileData = {};
         let replyingTo = null;
         let messagesListener = null;
         let readReceiptsListener = null;
+        let selectedAvatar = defaultAvatars[0].url;
 
         auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 
@@ -956,12 +1391,25 @@
 
                 if (snap.empty) { alert("User not found!"); btn.disabled = false; btn.textContent = 'Login'; return; }
 
-                const data = snap.docs[0].data();
+                const doc = snap.docs[0];
+                const data = doc.data();
+                
                 if (data.password !== password) { alert("Wrong password!"); btn.disabled = false; btn.textContent = 'Login'; return; }
                 if (data.isBlocked) { alert("Account blocked!"); btn.disabled = false; btn.textContent = 'Login'; return; }
 
                 currentUser = data.username;
                 currentCountry = data.country;
+                currentUserDocId = doc.id;
+                
+                // Load user profile data
+                userProfileData = {
+                    username: data.username,
+                    bio: data.bio || '',
+                    avatar: data.avatar || defaultAvatars[0].url,
+                    country: data.country
+                };
+                selectedAvatar = userProfileData.avatar;
+
                 enterChat();
 
             } catch (err) {
@@ -992,13 +1440,30 @@
 
                 const user = await ensureAuth();
 
-                await db.collection("users").add({
-                    username, password, country,
+                const userData = {
+                    username,
+                    password,
+                    country,
                     flag: countryFlags[country],
+                    bio: '',
+                    avatar: defaultAvatars[0].url,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     isBlocked: false,
                     userId: user.uid
-                });
+                };
+
+                const docRef = await db.collection("users").add(userData);
+                
+                currentUser = username;
+                currentCountry = country;
+                currentUserDocId = docRef.id;
+                userProfileData = {
+                    username: username,
+                    bio: '',
+                    avatar: defaultAvatars[0].url,
+                    country: country
+                };
+                selectedAvatar = defaultAvatars[0].url;
 
                 alert("Account created! Please login.");
                 showTab('login', document.querySelectorAll('.tab-btn')[0]);
@@ -1022,6 +1487,9 @@
             document.getElementById('loginBackground').style.display = 'none';
             document.getElementById('chatScreen').style.display = 'flex';
 
+            // Update profile UI with user data
+            updateProfileUI();
+
             listenMessages();
             setupInput();
             updateReadReceipts();
@@ -1031,6 +1499,206 @@
             const input = document.getElementById('messageInput');
             input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
             setTimeout(() => input.focus(), 100);
+        }
+
+        // ============================================
+        // PROFILE FUNCTIONS
+        // ============================================
+        function openProfile() {
+            // Refresh profile data before opening
+            refreshProfileData().then(() => {
+                document.getElementById('profilePanel').classList.add('open');
+            });
+        }
+
+        function closeProfile() {
+            document.getElementById('profilePanel').classList.remove('open');
+        }
+
+        // Refresh profile data from Firestore
+        async function refreshProfileData() {
+            if (!currentUserDocId) return;
+            
+            try {
+                const doc = await db.collection("users").doc(currentUserDocId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    userProfileData = {
+                        username: data.username,
+                        bio: data.bio || '',
+                        avatar: data.avatar || defaultAvatars[0].url,
+                        country: data.country
+                    };
+                    selectedAvatar = userProfileData.avatar;
+                    updateProfileUI();
+                }
+            } catch (err) {
+                console.error("Error refreshing profile:", err);
+            }
+        }
+
+        function updateProfileUI() {
+            document.getElementById('profilePicLarge').src = userProfileData.avatar;
+            document.getElementById('profileBtnImg').src = userProfileData.avatar;
+            document.getElementById('profileUsername').value = userProfileData.username;
+            document.getElementById('profileBio').value = userProfileData.bio || '';
+            document.getElementById('profileCountry').value = `${countryFlags[userProfileData.country]} ${userProfileData.country}`;
+            selectedAvatar = userProfileData.avatar;
+        }
+
+        function openAvatarModal() {
+            const grid = document.getElementById('avatarGrid');
+            grid.innerHTML = '';
+            
+            defaultAvatars.forEach(avatar => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                if (avatar.url === selectedAvatar) div.classList.add('selected');
+                
+                div.innerHTML = `
+                    <img src="${avatar.url}" alt="${avatar.name}">
+                    <div class="avatar-check">✓</div>
+                `;
+                
+                div.onclick = () => selectAvatar(avatar.url, div);
+                grid.appendChild(div);
+            });
+            
+            document.getElementById('avatarModal').classList.add('active');
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatarModal').classList.remove('active');
+        }
+
+        function selectAvatar(url, element) {
+            selectedAvatar = url;
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            // Preview immediately
+            document.getElementById('profilePicLarge').src = url;
+        }
+
+        // ============================================
+        // SAVE PROFILE - FIXED AND FUNCTIONAL
+        // ============================================
+        async function saveProfile() {
+            const btn = document.querySelector('.save-profile-btn');
+            const newUsername = document.getElementById('profileUsername').value.trim();
+            const newBio = document.getElementById('profileBio').value.trim();
+            
+            // Validation
+            if (!newUsername) {
+                alert("Username cannot be empty!");
+                return;
+            }
+
+            // Check if anything changed
+            const usernameChanged = newUsername !== currentUser;
+            const bioChanged = newBio !== (userProfileData.bio || '');
+            const avatarChanged = selectedAvatar !== userProfileData.avatar;
+
+            if (!usernameChanged && !bioChanged && !avatarChanged) {
+                alert("No changes made!");
+                closeProfile();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            try {
+                // Step 1: Check if username is taken (only if username changed)
+                if (usernameChanged) {
+                    const existing = await db.collection("users")
+                        .where("username", "==", newUsername)
+                        .get();
+                    
+                    // Check if any document exists with this username (excluding current user)
+                    let usernameTaken = false;
+                    existing.forEach(doc => {
+                        if (doc.id !== currentUserDocId) {
+                            usernameTaken = true;
+                        }
+                    });
+
+                    if (usernameTaken) {
+                        alert("Username already taken!");
+                        btn.disabled = false;
+                        btn.textContent = '💾 Save Changes';
+                        return;
+                    }
+                }
+
+                // Step 2: Update user document in Firestore
+                const updateData = {};
+                if (usernameChanged) updateData.username = newUsername;
+                if (bioChanged) updateData.bio = newBio;
+                if (avatarChanged) updateData.avatar = selectedAvatar;
+
+                await db.collection("users").doc(currentUserDocId).update(updateData);
+
+                // Step 3: Update messages if username or avatar changed
+                if (usernameChanged || avatarChanged) {
+                    try {
+                        const messagesSnap = await db.collection("messages")
+                            .where("username", "==", currentUser)
+                            .limit(500) // Limit to prevent timeout
+                            .get();
+
+                        if (!messagesSnap.empty) {
+                            const batch = db.batch();
+                            let operationCount = 0;
+                            
+                            messagesSnap.forEach(doc => {
+                                const msgUpdate = {};
+                                if (usernameChanged) msgUpdate.username = newUsername;
+                                if (avatarChanged) msgUpdate.avatar = selectedAvatar;
+                                
+                                batch.update(doc.ref, msgUpdate);
+                                operationCount++;
+                                
+                                // Firestore batch limit is 500 operations
+                                if (operationCount >= 450) {
+                                    return; // Stop adding to this batch
+                                }
+                            });
+                            
+                            await batch.commit();
+                        }
+                    } catch (msgErr) {
+                        console.error("Error updating messages:", msgErr);
+                        // Don't fail the whole operation if message update fails
+                    }
+                }
+
+                // Step 4: Update local state
+                const oldUsername = currentUser;
+                currentUser = newUsername;
+                userProfileData = {
+                    username: newUsername,
+                    bio: newBio,
+                    avatar: selectedAvatar,
+                    country: currentCountry
+                };
+
+                // Step 5: Update UI
+                document.getElementById('profileBtnImg').src = selectedAvatar;
+                
+                btn.disabled = false;
+                btn.textContent = '💾 Save Changes';
+                
+                alert("Profile updated successfully!");
+                closeProfile();
+                closeAvatarModal();
+
+            } catch (err) {
+                console.error("Save profile error:", err);
+                alert("Error saving profile: " + (err.message || "Unknown error"));
+                btn.disabled = false;
+                btn.textContent = '💾 Save Changes';
+            }
         }
 
         // ============================================
@@ -1066,6 +1734,7 @@
                     username: currentUser, 
                     country: currentCountry,
                     flag: countryFlags[currentCountry] || '🌍',
+                    avatar: userProfileData.avatar,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     userId: auth.currentUser ? auth.currentUser.uid : 'unknown',
                     status: 'sent',
@@ -1134,10 +1803,12 @@
             }
             
             const statusHtml = isMe ? getStatusHtml(msg) : '';
+            const avatarUrl = msg.avatar || defaultAvatars[0].url;
             
             div.innerHTML = `
                 <button class="reply-btn" onclick="startReply('${id}', '${msg.username}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')" title="Reply">↩️</button>
                 <div class="message-header">
+                    <img src="${avatarUrl}" class="user-avatar-small" alt="avatar">
                     <span class="username">${msg.flag || '🌍'} ${msg.username}</span>
                     <span class="timestamp">${time}</span>
                 </div>
@@ -1163,6 +1834,19 @@
             if (!el) return;
 
             const isMe = msg.username === currentUser;
+            
+            // Update avatar if changed
+            const avatarImg = el.querySelector('.user-avatar-small');
+            if (avatarImg && msg.avatar) {
+                avatarImg.src = msg.avatar;
+            }
+            
+            // Update username if changed
+            const usernameSpan = el.querySelector('.username');
+            if (usernameSpan) {
+                usernameSpan.innerHTML = `${msg.flag || '🌍'} ${msg.username}`;
+            }
+            
             if (isMe) {
                 const statusDiv = el.querySelector('.message-status');
                 if (statusDiv) {
