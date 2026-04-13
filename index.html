@@ -65,7 +65,6 @@
             background: var(--bg-cream);
         }
 
-        /* Theme Toggle */
         #themeToggle {
             position: fixed;
             top: 20px;
@@ -99,7 +98,6 @@
             font-size: 20px;
         }
 
-        /* Login Background */
         #loginBackground {
             position: fixed;
             top: 0;
@@ -147,7 +145,6 @@
             display: none;
         }
 
-        /* Login Screen */
         #loginScreen {
             position: fixed;
             top: 50%;
@@ -264,7 +261,6 @@
             transform: none;
         }
 
-        /* Main App Container */
         #appContainer {
             display: none;
             width: 100%;
@@ -281,7 +277,6 @@
             display: flex;
         }
 
-        /* Top Navigation */
         #topNav {
             display: flex;
             justify-content: space-between;
@@ -354,7 +349,6 @@
             border: 2px solid var(--bg-cream);
         }
 
-        /* Bottom Navigation */
         #bottomNav {
             display: flex;
             justify-content: space-around;
@@ -398,7 +392,6 @@
             font-weight: 600;
         }
 
-        /* Content Screens */
         .screen {
             display: none;
             flex: 1;
@@ -411,7 +404,6 @@
             display: block;
         }
 
-        /* Rooms Screen */
         .rooms-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -493,7 +485,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* Inbox Screen */
         .inbox-header {
             display: flex;
             justify-content: space-between;
@@ -606,7 +597,6 @@
             opacity: 0.5;
         }
 
-        /* Search Screen */
         .search-container {
             max-width: 600px;
             margin: 0 auto;
@@ -734,7 +724,6 @@
             background: rgba(255, 71, 87, 0.2);
         }
 
-        /* Chat Screen (Room/Private) */
         #chatScreen {
             display: none;
             width: 100%;
@@ -1014,7 +1003,6 @@
             object-fit: cover;
         }
 
-        /* Profile Panel */
         #profilePanel {
             position: fixed;
             top: 0;
@@ -1142,7 +1130,6 @@
             margin-top: 10px;
         }
 
-        /* Avatar Modal */
         #avatarModal {
             display: none;
             position: fixed;
@@ -1195,7 +1182,6 @@
             object-fit: cover;
         }
 
-        /* Blocked Users Modal */
         #blockedModal {
             display: none;
             position: fixed;
@@ -1237,12 +1223,10 @@
             font-weight: 600;
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(142, 108, 255, 0.3); border-radius: 3px; }
 
-        /* Mobile Responsive */
         @media (max-width: 768px) {
             .rooms-grid {
                 grid-template-columns: 1fr;
@@ -1274,17 +1258,14 @@
 </head>
 <body>
 
-    <!-- Theme Toggle -->
     <button id="themeToggle" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
 
-    <!-- Login Background -->
     <div id="loginBackground">
         <div class="mubble-text">Mubble</div>
         <div class="mubble-text">Mubble</div>
         <div class="mubble-text">Mubble</div>
     </div>
 
-    <!-- Login Screen -->
     <div id="loginScreen">
         <div class="app-logo">Mubble</div>
         <p class="tagline">Connect. Chat. Share.</p>
@@ -1336,9 +1317,7 @@
         </div>
     </div>
 
-    <!-- Main App Container -->
     <div id="appContainer">
-        <!-- Top Navigation -->
         <div id="topNav">
             <h1>Mubble</h1>
             <div class="nav-icons">
@@ -1349,16 +1328,10 @@
             </div>
         </div>
 
-        <!-- Content Screens -->
-        
-        <!-- Rooms Screen -->
         <div id="roomsScreen" class="screen active">
-            <div class="rooms-grid" id="roomsGrid">
-                <!-- Rooms will be populated by JS -->
-            </div>
+            <div class="rooms-grid" id="roomsGrid"></div>
         </div>
 
-        <!-- Inbox Screen -->
         <div id="inboxScreen" class="screen">
             <div class="inbox-header">
                 <h2>📨 Inbox</h2>
@@ -1372,7 +1345,6 @@
             </div>
         </div>
 
-        <!-- Search Screen -->
         <div id="searchScreen" class="screen">
             <div class="search-container">
                 <div class="search-box">
@@ -1383,7 +1355,6 @@
             </div>
         </div>
 
-        <!-- Bottom Navigation -->
         <div id="bottomNav">
             <button class="nav-item active" onclick="switchTab('rooms', this)">
                 <span class="nav-icon">🏠</span>
@@ -1396,7 +1367,6 @@
         </div>
     </div>
 
-    <!-- Chat Screen (Overlay) -->
     <div id="chatScreen">
         <div id="chatHeader">
             <button class="back-btn" onclick="closeChat()">←</button>
@@ -1418,7 +1388,6 @@
         </div>
     </div>
 
-    <!-- Profile Panel -->
     <div id="profilePanel">
         <div id="profileHeader">
             <h2>👤 My Profile</h2>
@@ -1459,7 +1428,6 @@
         </div>
     </div>
 
-    <!-- Avatar Modal -->
     <div id="avatarModal">
         <div class="avatar-modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1470,7 +1438,6 @@
         </div>
     </div>
 
-    <!-- Blocked Users Modal -->
     <div id="blockedModal">
         <div class="avatar-modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1481,7 +1448,6 @@
         </div>
     </div>
 
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -1519,7 +1485,7 @@
             { id: 'avatar6', url: 'https://4kwallpapers.com/images/wallpapers/full-moon-forest-night-dark-starry-sky-5k-8k-2160x3840-1684.jpg', name: 'Moon' }
         ];
 
-        // Firebase Config (Your existing config)
+        // Firebase Config - YOUR EXISTING CONFIG (DO NOT CHANGE)
         firebase.initializeApp({
             apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
             authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
@@ -1539,7 +1505,7 @@
         let currentUserDocId = "";
         let userProfileData = {};
         let selectedAvatar = defaultAvatars[0].url;
-        let currentChat = null; // { type: 'room'|'private', id: string, name: string }
+        let currentChat = null;
         let replyingTo = null;
         let messagesListener = null;
         let inboxListener = null;
@@ -1619,12 +1585,16 @@
                 };
                 selectedAvatar = userProfileData.avatar;
 
-                // Load blocked users
-                await loadBlockedUsers();
+                // Fix missing userId if needed
+                if (!data.userId) {
+                    await db.collection("users").doc(currentUserDocId).update({ userId: currentUserId });
+                }
 
+                await loadBlockedUsers();
                 enterApp();
 
             } catch (err) {
+                console.error("Login error:", err);
                 alert("Error: " + err.message);
                 btn.disabled = false;
                 btn.textContent = 'Login';
@@ -1679,6 +1649,7 @@
                 btn.textContent = 'Create Account';
 
             } catch (err) {
+                console.error("Register error:", err);
                 alert("Error: " + err.message);
                 btn.disabled = false;
                 btn.textContent = 'Create Account';
@@ -1733,8 +1704,10 @@
         }
 
         // ============================================
-        // CHAT SYSTEM
+        // CHAT SYSTEM - COMPLETELY FIXED
         // ============================================
+        
+        // FIXED: Room opening with proper message loading
         function openRoom(roomId) {
             const room = rooms.find(r => r.id === roomId);
             currentChat = { type: 'room', id: roomId, name: room.name };
@@ -1747,107 +1720,161 @@
             
             if (messagesListener) messagesListener();
             
+            // FIXED: Load all messages without complex ordering first
             messagesListener = db.collection("roomMessages")
                 .where("roomId", "==", roomId)
-                .orderBy("timestamp", "asc")
                 .onSnapshot((snap) => {
-                    snap.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            showMessage(change.doc.id, change.doc.data());
-                        }
+                    console.log("Room messages received:", snap.docs.length);
+                    
+                    const container = document.getElementById('messagesContainer');
+                    
+                    // Get all messages and sort manually
+                    const messages = [];
+                    snap.forEach(doc => {
+                        messages.push({ id: doc.id, ...doc.data() });
                     });
+                    
+                    // Sort by timestamp
+                    messages.sort((a, b) => {
+                        const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+                        const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+                        return timeA - timeB;
+                    });
+                    
+                    // Clear and rebuild (avoid duplicates)
+                    container.innerHTML = '';
+                    messages.forEach(msg => {
+                        showMessage(msg.id, msg);
+                    });
+                    
                     scrollToBottom();
+                }, (error) => {
+                    console.error("Room messages error:", error);
                 });
         }
 
+        // FIXED: Private chat opening
         async function openPrivateChat(otherUserId, otherUsername, otherAvatar) {
+            console.log("Opening chat with:", otherUsername, "ID:", otherUserId);
+            
+            if (!otherUserId || !otherUsername) {
+                alert("Error: User information missing");
+                return;
+            }
+
             // Check if blocked
             if (blockedUsers.has(otherUserId)) {
                 alert("You have blocked this user. Unblock them to chat.");
                 return;
             }
 
-            // Check if other user blocked current user
-            const otherUserDoc = await db.collection("users").where("username", "==", otherUsername).get();
-            if (!otherUserDoc.empty) {
-                const otherData = otherUserDoc.docs[0].data();
-                const otherBlocked = new Set(otherData.blockedUsers || []);
-                if (otherBlocked.has(currentUserId)) {
-                    alert("This user has blocked you.");
-                    return;
+            try {
+                // Check if other user blocked you
+                const otherUserDoc = await db.collection("users").where("username", "==", otherUsername).get();
+                if (!otherUserDoc.empty) {
+                    const otherData = otherUserDoc.docs[0].data();
+                    const otherBlocked = new Set(otherData.blockedUsers || []);
+                    if (otherBlocked.has(currentUserId)) {
+                        alert("This user has blocked you.");
+                        return;
+                    }
                 }
-            }
 
-            // Find or create chat
-            const chatQuery = await db.collection("privateChats")
-                .where("participants", "array-contains", currentUserId)
-                .get();
+                // Find existing chat
+                const chatQuery = await db.collection("privateChats")
+                    .where("participants", "array-contains", currentUserId)
+                    .get();
 
-            let chatId = null;
-            chatQuery.forEach(doc => {
-                const data = doc.data();
-                if (data.participants.includes(otherUserId)) {
-                    chatId = doc.id;
+                let chatId = null;
+                chatQuery.forEach(doc => {
+                    const data = doc.data();
+                    if (data.participants && data.participants.includes(otherUserId)) {
+                        chatId = doc.id;
+                    }
+                });
+
+                // Create new chat if not found
+                if (!chatId) {
+                    console.log("Creating new chat...");
+                    const newChat = await db.collection("privateChats").add({
+                        participants: [currentUserId, otherUserId],
+                        participantNames: [currentUser, otherUsername],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastMessage: '',
+                        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    chatId = newChat.id;
+                    console.log("New chat created:", chatId);
                 }
-            });
 
-            if (!chatId) {
-                // Create new chat
-                const newChat = await db.collection("privateChats").add({
-                    participants: [currentUserId, otherUserId],
-                    participantNames: [currentUser, otherUsername],
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastMessage: '',
-                    lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                chatId = newChat.id;
+                currentChat = { 
+                    type: 'private', 
+                    id: chatId, 
+                    name: otherUsername,
+                    otherUserId: otherUserId,
+                    otherAvatar: otherAvatar
+                };
+
+                document.getElementById('chatTitle').textContent = otherUsername;
+                document.getElementById('chatSubtitle').textContent = 'Private Chat';
+                document.getElementById('messagesContainer').innerHTML = '';
+                document.getElementById('chatScreen').classList.add('active');
+
+                if (messagesListener) messagesListener();
+
+                // Load private messages
+                messagesListener = db.collection("messages")
+                    .where("chatId", "==", chatId)
+                    .onSnapshot((snap) => {
+                        console.log("Private messages:", snap.docs.length);
+                        
+                        const container = document.getElementById('messagesContainer');
+                        const messages = [];
+                        
+                        snap.forEach(doc => {
+                            messages.push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Sort by timestamp
+                        messages.sort((a, b) => {
+                            const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
+                            const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
+                            return timeA - timeB;
+                        });
+                        
+                        container.innerHTML = '';
+                        messages.forEach(msg => {
+                            showMessage(msg.id, msg);
+                        });
+                        
+                        scrollToBottom();
+                        
+                        // Mark as read
+                        snap.docs.forEach(async (doc) => {
+                            const data = doc.data();
+                            if (data.senderId !== currentUserId && !data.read) {
+                                await db.collection("messages").doc(doc.id).update({ read: true });
+                            }
+                        });
+                    }, (error) => {
+                        console.error("Private messages error:", error);
+                    });
+
+                // Mark inbox as read
+                await db.collection("inbox")
+                    .where("chatId", "==", chatId)
+                    .where("userId", "==", currentUserId)
+                    .get()
+                    .then(snap => {
+                        snap.forEach(doc => {
+                            doc.ref.update({ unreadCount: 0 });
+                        });
+                    });
+
+            } catch (err) {
+                console.error("Open private chat error:", err);
+                alert("Error starting chat: " + err.message);
             }
-
-            currentChat = { 
-                type: 'private', 
-                id: chatId, 
-                name: otherUsername,
-                otherUserId: otherUserId,
-                otherAvatar: otherAvatar
-            };
-
-            document.getElementById('chatTitle').textContent = otherUsername;
-            document.getElementById('chatSubtitle').textContent = 'Private Chat';
-            document.getElementById('messagesContainer').innerHTML = '';
-            document.getElementById('chatScreen').classList.add('active');
-
-            if (messagesListener) messagesListener();
-
-            messagesListener = db.collection("messages")
-                .where("chatId", "==", chatId)
-                .orderBy("timestamp", "asc")
-                .onSnapshot((snap) => {
-                    snap.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            showMessage(change.doc.id, change.doc.data());
-                        }
-                    });
-                    scrollToBottom();
-                    
-                    // Mark messages as read
-                    snap.docs.forEach(async (doc) => {
-                        const data = doc.data();
-                        if (data.senderId !== currentUserId && !data.read) {
-                            await db.collection("messages").doc(doc.id).update({ read: true });
-                        }
-                    });
-                });
-
-            // Mark inbox item as read
-            await db.collection("inbox")
-                .where("chatId", "==", chatId)
-                .where("userId", "==", currentUserId)
-                .get()
-                .then(snap => {
-                    snap.forEach(doc => {
-                        doc.ref.update({ unreadCount: 0 });
-                    });
-                });
         }
 
         function closeChat() {
@@ -1859,95 +1886,127 @@
             currentChat = null;
         }
 
+        // FIXED: Send message function
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text || !currentChat) return;
+            
+            if (!text) return;
+            if (!currentChat) {
+                alert("No chat selected");
+                return;
+            }
 
-            // Check block status for private chats
+            console.log("Sending message to:", currentChat.type);
+
+            // Check block for private
             if (currentChat.type === 'private') {
                 if (blockedUsers.has(currentChat.otherUserId)) {
-                    alert("You cannot message this user. You have blocked them.");
+                    alert("You have blocked this user");
                     return;
                 }
             }
 
+            // Clear input
             input.value = '';
             cancelReply();
 
-            const messageData = {
-                text,
-                senderId: currentUserId,
-                senderName: currentUser,
-                senderAvatar: userProfileData.avatar,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            if (replyingTo) {
-                messageData.replyTo = {
-                    senderName: replyingTo.username,
-                    text: replyingTo.text.substring(0, 100)
+            try {
+                const messageData = {
+                    text: text,
+                    senderId: currentUserId,
+                    senderName: currentUser,
+                    senderAvatar: userProfileData.avatar || defaultAvatars[0].url,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 };
+
+                if (replyingTo) {
+                    messageData.replyTo = {
+                        senderName: replyingTo.username,
+                        text: replyingTo.text.substring(0, 100)
+                    };
+                }
+
+                if (currentChat.type === 'room') {
+                    // Room message
+                    messageData.roomId = currentChat.id;
+                    console.log("Sending room message:", messageData);
+                    
+                    await db.collection("roomMessages").add(messageData);
+                    console.log("✓ Room message sent");
+                    
+                } else {
+                    // Private message
+                    messageData.chatId = currentChat.id;
+                    messageData.read = false;
+                    
+                    await db.collection("messages").add(messageData);
+                    console.log("✓ Private message sent");
+
+                    // Update inbox
+                    await updateInbox(currentChat, text);
+                }
+
+            } catch (err) {
+                console.error("Send error:", err);
+                alert("Failed to send: " + err.message);
+                input.value = text;
             }
+        }
 
-            if (currentChat.type === 'room') {
-                messageData.roomId = currentChat.id;
-                await db.collection("roomMessages").add(messageData);
-            } else {
-                messageData.chatId = currentChat.id;
-                await db.collection("messages").add(messageData);
-
-                // Update inbox for both users
+        // Separate inbox update
+        async function updateInbox(chat, text) {
+            try {
                 const inboxData = {
-                    chatId: currentChat.id,
+                    chatId: chat.id,
                     lastMessage: text,
                     lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
                     type: 'private'
                 };
 
-                // Update for current user
-                await db.collection("inbox")
-                    .where("chatId", "==", currentChat.id)
+                // My inbox
+                const myQuery = await db.collection("inbox")
+                    .where("chatId", "==", chat.id)
                     .where("userId", "==", currentUserId)
-                    .get()
-                    .then(snap => {
-                        if (snap.empty) {
-                            db.collection("inbox").add({
-                                ...inboxData,
-                                userId: currentUserId,
-                                otherUserId: currentChat.otherUserId,
-                                otherUsername: currentChat.name,
-                                otherAvatar: currentChat.otherAvatar,
-                                unreadCount: 0
-                            });
-                        } else {
-                            snap.docs[0].ref.update({ ...inboxData, unreadCount: 0 });
-                        }
-                    });
+                    .get();
 
-                // Update for other user (increment unread)
-                await db.collection("inbox")
-                    .where("chatId", "==", currentChat.id)
-                    .where("userId", "==", currentChat.otherUserId)
-                    .get()
-                    .then(snap => {
-                        if (snap.empty) {
-                            db.collection("inbox").add({
-                                ...inboxData,
-                                userId: currentChat.otherUserId,
-                                otherUserId: currentUserId,
-                                otherUsername: currentUser,
-                                otherAvatar: userProfileData.avatar,
-                                unreadCount: 1
-                            });
-                        } else {
-                            const currentUnread = snap.docs[0].data().unreadCount || 0;
-                            snap.docs[0].ref.update({ 
-                                ...inboxData, 
-                                unreadCount: currentUnread + 1 
-                            });
-                        }
+                if (myQuery.empty) {
+                    await db.collection("inbox").add({
+                        ...inboxData,
+                        userId: currentUserId,
+                        otherUserId: chat.otherUserId,
+                        otherUsername: chat.name,
+                        otherAvatar: chat.otherAvatar || defaultAvatars[0].url,
+                        unreadCount: 0
                     });
+                } else {
+                    await myQuery.docs[0].ref.update({ ...inboxData, unreadCount: 0 });
+                }
+
+                // Their inbox
+                const theirQuery = await db.collection("inbox")
+                    .where("chatId", "==", chat.id)
+                    .where("userId", "==", chat.otherUserId)
+                    .get();
+
+                if (theirQuery.empty) {
+                    await db.collection("inbox").add({
+                        ...inboxData,
+                        userId: chat.otherUserId,
+                        otherUserId: currentUserId,
+                        otherUsername: currentUser,
+                        otherAvatar: userProfileData.avatar || defaultAvatars[0].url,
+                        unreadCount: 1
+                    });
+                } else {
+                    const currentUnread = theirQuery.docs[0].data().unreadCount || 0;
+                    await theirQuery.docs[0].ref.update({
+                        ...inboxData,
+                        unreadCount: currentUnread + 1
+                    });
+                }
+            } catch (err) {
+                console.error("Inbox update error:", err);
             }
         }
 
@@ -1966,20 +2025,22 @@
             if (msg.replyTo) {
                 replyHtml = `
                     <div class="reply-to">
-                        <span class="reply-to-name">${msg.replyTo.senderName}</span>
+                        <span class="reply-to-name">${escapeHtml(msg.replyTo.senderName)}</span>
                         <div class="reply-to-text">${escapeHtml(msg.replyTo.text)}</div>
                     </div>
                 `;
             }
 
-            const statusHtml = isMe && currentChat.type === 'private' ? 
+            const statusHtml = isMe && currentChat && currentChat.type === 'private' ? 
                 `<div class="message-status"><span class="${msg.read ? 'status-read' : ''}">${msg.read ? '✓✓ Read' : '✓ Sent'}</span></div>` : '';
 
+            const avatarUrl = msg.senderAvatar || defaultAvatars[0].url;
+
             div.innerHTML = `
-                <button class="reply-btn" onclick="startReply('${id}', '${msg.senderName}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')">↩️</button>
+                <button class="reply-btn" onclick="startReply('${id}', '${escapeHtml(msg.senderName)}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')">↩️</button>
                 <div class="message-header">
-                    <img src="${msg.senderAvatar || defaultAvatars[0].url}" class="user-avatar-small">
-                    <span class="username">${msg.senderName}</span>
+                    <img src="${avatarUrl}" class="user-avatar-small" onerror="this.src='${defaultAvatars[0].url}'">
+                    <span class="username">${escapeHtml(msg.senderName)}</span>
                     <span class="timestamp">${time}</span>
                 </div>
                 ${replyHtml}
@@ -2011,20 +2072,20 @@
         }
 
         // ============================================
-        // INBOX SYSTEM
+        // INBOX SYSTEM - FIXED
         // ============================================
         function listenInbox() {
             if (inboxListener) inboxListener();
 
             inboxListener = db.collection("inbox")
                 .where("userId", "==", currentUserId)
-                .orderBy("lastMessageTime", "desc")
                 .onSnapshot((snap) => {
+                    console.log("Inbox updated:", snap.docs.length);
                     const list = document.getElementById('inboxList');
                     
                     if (snap.empty) {
                         list.innerHTML = `
-                            <div class="empty-state">
+                                                       <div class="empty-state">
                                 <div class="empty-state-icon">💬</div>
                                 <p>No conversations yet</p>
                                 <p style="font-size: 14px; margin-top: 10px;">Search for users to start chatting!</p>
@@ -2034,19 +2095,35 @@
                     }
 
                     list.innerHTML = '';
+                    
+                    // Sort manually by lastMessageTime
+                    const conversations = [];
                     snap.forEach(doc => {
-                        const data = doc.data();
+                        conversations.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    conversations.sort((a, b) => {
+                        const timeA = a.lastMessageTime ? a.lastMessageTime.toMillis() : 0;
+                        const timeB = b.lastMessageTime ? b.lastMessageTime.toMillis() : 0;
+                        return timeB - timeA; // Newest first
+                    });
+                    
+                    conversations.forEach(data => {
                         const time = data.lastMessageTime ? 
                             new Date(data.lastMessageTime.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
                         
                         const item = document.createElement('div');
                         item.className = 'chat-item' + (data.unreadCount > 0 ? ' unread' : '');
-                        item.onclick = () => openPrivateChat(data.otherUserId, data.otherUsername, data.otherAvatar);
+                        item.onclick = () => {
+                            if (data.otherUserId && data.otherUsername) {
+                                openPrivateChat(data.otherUserId, data.otherUsername, data.otherAvatar);
+                            }
+                        };
                         
                         item.innerHTML = `
-                            <img src="${data.otherAvatar || defaultAvatars[0].url}" class="chat-avatar">
+                            <img src="${data.otherAvatar || defaultAvatars[0].url}" class="chat-avatar" onerror="this.src='${defaultAvatars[0].url}'">
                             <div class="chat-info">
-                                <div class="chat-name">${data.otherUsername}</div>
+                                <div class="chat-name">${escapeHtml(data.otherUsername || 'Unknown')}</div>
                                 <div class="chat-preview">${escapeHtml(data.lastMessage || 'No messages yet')}</div>
                             </div>
                             <div class="chat-meta">
@@ -2056,54 +2133,70 @@
                         `;
                         list.appendChild(item);
                     });
+                }, (error) => {
+                    console.error("Inbox error:", error);
                 });
         }
 
         // ============================================
-        // SEARCH SYSTEM
+        // SEARCH SYSTEM - COMPLETELY FIXED
         // ============================================
         async function handleSearch(e) {
             if (e.key !== 'Enter') return;
             
-            const query = document.getElementById('searchInput').value.trim();
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
             if (!query) return;
 
             const resultsDiv = document.getElementById('searchResults');
-            resultsDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Searching...</p>';
+            resultsDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Searching...</p>';
 
             try {
-                const snap = await db.collection("users")                    .where("username", ">=", query)
-                    .where("username", "<=", query + '\uf8ff')
-                    .limit(10)
-                    .get();
+                // FIXED: Get all users and filter manually (avoids index issues)
+                const snap = await db.collection("users").limit(100).get();
 
-                if (snap.empty) {
-                    resultsDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No users found</p>';
+                console.log("Total users:", snap.docs.length, "Query:", query);
+
+                const matchingUsers = [];
+                snap.forEach(doc => {
+                    const user = doc.data();
+                    const username = (user.username || '').toLowerCase();
+                    
+                    // Match if username contains query
+                    if (username.includes(query) && user.username !== currentUser) {
+                        // Ensure userId exists
+                        if (!user.userId) {
+                            user.userId = doc.id; // Use doc ID as fallback
+                        }
+                        matchingUsers.push({ docId: doc.id, ...user });
+                    }
+                });
+
+                console.log("Matching users:", matchingUsers.length);
+
+                if (matchingUsers.length === 0) {
+                    resultsDiv.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 40px;">No users found with "${escapeHtml(query)}"</p>`;
                     return;
                 }
 
                 resultsDiv.innerHTML = '';
-                snap.forEach(doc => {
-                    const user = doc.data();
-                    if (user.username === currentUser) return; // Skip current user
-
+                matchingUsers.forEach(user => {
                     const isBlocked = blockedUsers.has(user.userId);
                     
                     const div = document.createElement('div');
                     div.className = 'user-result';
                     div.innerHTML = `
-                        <img src="${user.avatar || defaultAvatars[0].url}" class="user-result-avatar">
+                        <img src="${user.avatar || defaultAvatars[0].url}" class="user-result-avatar" onerror="this.src='${defaultAvatars[0].url}'">
                         <div class="user-result-info">
-                            <div class="user-result-name">${user.flag || '🌍'} ${user.username}</div>
-                            <div class="user-result-bio">${user.bio || 'No bio yet'}</div>
-                            <div class="user-result-country">${user.country || 'Unknown'}</div>
+                            <div class="user-result-name">${user.flag || '🌍'} ${escapeHtml(user.username)}</div>
+                            <div class="user-result-bio">${escapeHtml(user.bio || 'No bio yet')}</div>
+                            <div class="user-result-country">${escapeHtml(user.country || 'Unknown')}</div>
                         </div>
                         <div class="user-result-actions">
                             ${!isBlocked ? `
-                                <button class="action-btn btn-primary" onclick="openPrivateChat('${user.userId}', '${user.username}', '${user.avatar || defaultAvatars[0].url}')">
+                                <button class="action-btn btn-primary" onclick="openPrivateChat('${user.userId}', '${escapeHtml(user.username)}', '${user.avatar || defaultAvatars[0].url}')">
                                     💬 Message
                                 </button>
-                                <button class="action-btn btn-danger" onclick="blockUser('${user.userId}', '${user.username}')">
+                                <button class="action-btn btn-danger" onclick="blockUser('${user.userId}', '${escapeHtml(user.username)}')">
                                     🚫 Block
                                 </button>
                             ` : `
@@ -2120,7 +2213,8 @@
                 });
 
             } catch (err) {
-                resultsDiv.innerHTML = `<p style="text-align: center; color: #ff4757;">Error: ${err.message}</p>`;
+                console.error("Search error:", err);
+                resultsDiv.innerHTML = `<p style="text-align: center; color: #ff4757; padding: 40px;">Error: ${err.message}</p>`;
             }
         }
 
@@ -2130,10 +2224,15 @@
         async function loadBlockedUsers() {
             if (!currentUserDocId) return;
             
-            const doc = await db.collection("users").doc(currentUserDocId).get();
-            if (doc.exists) {
-                const data = doc.data();
-                blockedUsers = new Set(data.blockedUsers || []);
+            try {
+                const doc = await db.collection("users").doc(currentUserDocId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    blockedUsers = new Set(data.blockedUsers || []);
+                    console.log("Blocked users loaded:", blockedUsers.size);
+                }
+            } catch (err) {
+                console.error("Load blocked error:", err);
             }
         }
 
@@ -2142,24 +2241,42 @@
             
             blockedUsers.add(userId);
             
-            await db.collection("users").doc(currentUserDocId).update({
-                blockedUsers: Array.from(blockedUsers)
-            });
-
-            alert(`${username} has been blocked.`);
-            document.getElementById('searchInput').dispatchEvent(new KeyboardEvent('keydown', {'key': 'Enter'}));
+            try {
+                await db.collection("users").doc(currentUserDocId).update({
+                    blockedUsers: Array.from(blockedUsers)
+                });
+                alert(`${username} blocked.`);
+                
+                // Refresh search
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput.value.trim()) {
+                    handleSearch({ key: 'Enter' });
+                }
+            } catch (err) {
+                console.error("Block error:", err);
+                alert("Error blocking: " + err.message);
+            }
         }
 
         async function unblockUser(userId) {
             blockedUsers.delete(userId);
             
-            await db.collection("users").doc(currentUserDocId).update({
-                blockedUsers: Array.from(blockedUsers)
-            });
-
-            alert("User unblocked.");
-            document.getElementById('searchInput').dispatchEvent(new KeyboardEvent('keydown', {'key': 'Enter'}));
-            loadBlockedUsers();
+            try {
+                await db.collection("users").doc(currentUserDocId).update({
+                    blockedUsers: Array.from(blockedUsers)
+                });
+                alert("User unblocked.");
+                
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput.value.trim()) {
+                    handleSearch({ key: 'Enter' });
+                }
+                
+                await loadBlockedUsers();
+            } catch (err) {
+                console.error("Unblock error:", err);
+                alert("Error unblocking: " + err.message);
+            }
         }
 
         async function showBlockedUsers() {
@@ -2170,19 +2287,23 @@
                 list.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">No blocked users</p>';
             } else {
                 for (const userId of blockedUsers) {
-                    const userSnap = await db.collection("users").where("userId", "==", userId).get();
-                    if (!userSnap.empty) {
-                        const user = userSnap.docs[0].data();
-                        const div = document.createElement('div');
-                        div.className = 'blocked-user';
-                        div.innerHTML = `
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <img src="${user.avatar || defaultAvatars[0].url}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                                <span style="font-weight: 600; color: var(--text-dark);">${user.username}</span>
-                            </div>
-                            <button class="unblock-btn" onclick="unblockUser('${userId}'); showBlockedUsers();">Unblock</button>
-                        `;
-                        list.appendChild(div);
+                    try {
+                        const userSnap = await db.collection("users").where("userId", "==", userId).get();
+                        if (!userSnap.empty) {
+                            const user = userSnap.docs[0].data();
+                            const div = document.createElement('div');
+                            div.className = 'blocked-user';
+                            div.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <img src="${user.avatar || defaultAvatars[0].url}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" onerror="this.src='${defaultAvatars[0].url}'">
+                                    <span style="font-weight: 600; color: var(--text-dark);">${escapeHtml(user.username)}</span>
+                                </div>
+                                <button class="unblock-btn" onclick="unblockUser('${userId}'); showBlockedUsers();">Unblock</button>
+                            `;
+                            list.appendChild(div);
+                        }
+                    } catch (err) {
+                        console.error("Error loading blocked user:", err);
                     }
                 }
             }
@@ -2210,26 +2331,31 @@
         async function refreshProfileData() {
             if (!currentUserDocId) return;
             
-            const doc = await db.collection("users").doc(currentUserDocId).get();
-            if (doc.exists) {
-                const data = doc.data();
-                userProfileData = {
-                    username: data.username,
-                    bio: data.bio || '',
-                    avatar: data.avatar || defaultAvatars[0].url,
-                    country: data.country
-                };
-                selectedAvatar = userProfileData.avatar;
-                updateProfileUI();
+            try {
+                const doc = await db.collection("users").doc(currentUserDocId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    userProfileData = {
+                        username: data.username,
+                        bio: data.bio || '',
+                        avatar: data.avatar || defaultAvatars[0].url,
+                        country: data.country
+                    };
+                    selectedAvatar = userProfileData.avatar;
+                    updateProfileUI();
+                }
+            } catch (err) {
+                console.error("Refresh profile error:", err);
             }
         }
 
         function updateProfileUI() {
-            document.getElementById('profilePicLarge').src = userProfileData.avatar;
-            document.getElementById('navProfileImg').src = userProfileData.avatar;
-            document.getElementById('profileUsername').value = userProfileData.username;
+            const avatar = userProfileData.avatar || defaultAvatars[0].url;
+            document.getElementById('profilePicLarge').src = avatar;
+            document.getElementById('navProfileImg').src = avatar;
+            document.getElementById('profileUsername').value = userProfileData.username || '';
             document.getElementById('profileBio').value = userProfileData.bio || '';
-            document.getElementById('profileCountry').value = `${countryFlags[userProfileData.country]} ${userProfileData.country}`;
+            document.getElementById('profileCountry').value = `${countryFlags[userProfileData.country] || '🌍'} ${userProfileData.country || 'Unknown'}`;
         }
 
         function openAvatarModal() {
@@ -2239,7 +2365,7 @@
             defaultAvatars.forEach(avatar => {
                 const div = document.createElement('div');
                 div.className = 'avatar-option' + (avatar.url === selectedAvatar ? ' selected' : '');
-                div.innerHTML = `<img src="${avatar.url}" alt="${avatar.name}">`;
+                div.innerHTML = `<img src="${avatar.url}" alt="${avatar.name}" onerror="this.src='${defaultAvatars[0].url}'">`;
                 div.onclick = () => {
                     selectedAvatar = avatar.url;
                     document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
@@ -2309,7 +2435,7 @@
                 if (usernameChanged || avatarChanged) {
                     const batch = db.batch();
                     
-                    // Update room messages
+                    // Room messages
                     const roomMsgs = await db.collection("roomMessages")
                         .where("senderId", "==", currentUserId)
                         .limit(500)
@@ -2322,7 +2448,7 @@
                         batch.update(doc.ref, upd);
                     });
 
-                    // Update private messages
+                    // Private messages
                     const privMsgs = await db.collection("messages")
                         .where("senderId", "==", currentUserId)
                         .limit(500)
@@ -2353,6 +2479,7 @@
                 closeAvatarModal();
 
             } catch (err) {
+                console.error("Save profile error:", err);
                 alert("Error: " + err.message);
                 btn.disabled = false;
                 btn.textContent = '💾 Save Changes';
@@ -2363,6 +2490,7 @@
         // UTILITIES
         // ============================================
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
@@ -2390,6 +2518,8 @@
             if (e.target.id === 'avatarModal') closeAvatarModal();
             if (e.target.id === 'blockedModal') closeBlockedModal();
         }
+
+        console.log("✅ Mubble Chat App Loaded - Fixed Version");
     </script>
 </body>
 </html>
