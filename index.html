@@ -728,6 +728,7 @@
             display: none;
             width: 100%;
             height: 100vh;
+            height: 100dvh;
             flex-direction: column;
             position: fixed;
             top: 0;
@@ -749,6 +750,7 @@
             backdrop-filter: blur(10px);
             background: var(--chat-header-bg);
             padding-left: 60px;
+            flex-shrink: 0;
         }
 
         .back-btn {
@@ -789,6 +791,7 @@
             overflow-y: auto;
             padding: 15px;
             -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
         }
 
         .message {
@@ -936,6 +939,7 @@
             margin: 0 15px;
             border-radius: 10px;
             position: relative;
+            flex-shrink: 0;
         }
 
         #cancelReply {
@@ -955,11 +959,15 @@
             backdrop-filter: blur(10px);
             background: var(--input-area-bg);
             border-top: 2px solid rgba(142, 108, 255, 0.2);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
         }
 
         #inputRow {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         #messageInput {
@@ -971,6 +979,9 @@
             outline: none;
             background: var(--input-bg);
             color: var(--text-dark);
+            min-height: 48px;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         #messageInput:focus {
@@ -989,10 +1000,16 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 5px 20px rgba(142, 108, 255, 0.3);
+            white-space: nowrap;
+            min-height: 48px;
         }
 
         #sendBtn:hover {
             transform: scale(1.05);
+        }
+
+        #sendBtn:active {
+            transform: scale(0.95);
         }
 
         .user-avatar-small {
@@ -1253,6 +1270,46 @@
             .nav-label {
                 font-size: 11px;
             }
+
+            #chatScreen {
+                height: 100vh;
+                height: 100dvh;
+            }
+
+            #messagesContainer {
+                padding-bottom: 10px;
+            }
+
+            #inputArea {
+                padding: 10px;
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
+            }
+
+            #messageInput {
+                font-size: 16px;
+                padding: 12px 15px;
+            }
+
+            #sendBtn {
+                padding: 12px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #inputRow {
+                gap: 8px;
+            }
+
+            #messageInput {
+                min-height: 44px;
+                padding: 10px 14px;
+            }
+
+            #sendBtn {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-height: 44px;
+            }
         }
     </style>
 </head>
@@ -1382,7 +1439,7 @@
         </div>
         <div id="inputArea">
             <div id="inputRow">
-                <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500">
+                <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500" autocomplete="off">
                 <button id="sendBtn" onclick="sendMessage()">Send</button>
             </div>
         </div>
@@ -1485,7 +1542,7 @@
             { id: 'avatar6', url: 'https://4kwallpapers.com/images/wallpapers/full-moon-forest-night-dark-starry-sky-5k-8k-2160x3840-1684.jpg', name: 'Moon' }
         ];
 
-        // Firebase Config - YOUR EXISTING CONFIG (DO NOT CHANGE)
+        // Firebase Config
         firebase.initializeApp({
             apiKey: "AIzaSyCy9SQh4bNk_ufl4MgQnIaBIJKbgtb76LY",
             authDomain: "my-chat-app-2026-59e34.firebaseapp.com",
@@ -1585,7 +1642,6 @@
                 };
                 selectedAvatar = userProfileData.avatar;
 
-                // Fix missing userId if needed
                 if (!data.userId) {
                     await db.collection("users").doc(currentUserDocId).update({ userId: currentUserId });
                 }
@@ -1704,10 +1760,8 @@
         }
 
         // ============================================
-        // CHAT SYSTEM - COMPLETELY FIXED
+        // CHAT SYSTEM - FIXED
         // ============================================
-        
-        // FIXED: Room opening with proper message loading
         function openRoom(roomId) {
             const room = rooms.find(r => r.id === roomId);
             currentChat = { type: 'room', id: roomId, name: room.name };
@@ -1720,28 +1774,22 @@
             
             if (messagesListener) messagesListener();
             
-            // FIXED: Load all messages without complex ordering first
             messagesListener = db.collection("roomMessages")
                 .where("roomId", "==", roomId)
                 .onSnapshot((snap) => {
-                    console.log("Room messages received:", snap.docs.length);
-                    
                     const container = document.getElementById('messagesContainer');
                     
-                    // Get all messages and sort manually
                     const messages = [];
                     snap.forEach(doc => {
                         messages.push({ id: doc.id, ...doc.data() });
                     });
                     
-                    // Sort by timestamp
                     messages.sort((a, b) => {
                         const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
                         const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
                         return timeA - timeB;
                     });
                     
-                    // Clear and rebuild (avoid duplicates)
                     container.innerHTML = '';
                     messages.forEach(msg => {
                         showMessage(msg.id, msg);
@@ -1753,23 +1801,18 @@
                 });
         }
 
-        // FIXED: Private chat opening
         async function openPrivateChat(otherUserId, otherUsername, otherAvatar) {
-            console.log("Opening chat with:", otherUsername, "ID:", otherUserId);
-            
             if (!otherUserId || !otherUsername) {
                 alert("Error: User information missing");
                 return;
             }
 
-            // Check if blocked
             if (blockedUsers.has(otherUserId)) {
                 alert("You have blocked this user. Unblock them to chat.");
                 return;
             }
 
             try {
-                // Check if other user blocked you
                 const otherUserDoc = await db.collection("users").where("username", "==", otherUsername).get();
                 if (!otherUserDoc.empty) {
                     const otherData = otherUserDoc.docs[0].data();
@@ -1780,7 +1823,6 @@
                     }
                 }
 
-                // Find existing chat
                 const chatQuery = await db.collection("privateChats")
                     .where("participants", "array-contains", currentUserId)
                     .get();
@@ -1793,9 +1835,7 @@
                     }
                 });
 
-                // Create new chat if not found
                 if (!chatId) {
-                    console.log("Creating new chat...");
                     const newChat = await db.collection("privateChats").add({
                         participants: [currentUserId, otherUserId],
                         participantNames: [currentUser, otherUsername],
@@ -1804,7 +1844,6 @@
                         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     chatId = newChat.id;
-                    console.log("New chat created:", chatId);
                 }
 
                 currentChat = { 
@@ -1822,12 +1861,9 @@
 
                 if (messagesListener) messagesListener();
 
-                // Load private messages
                 messagesListener = db.collection("messages")
                     .where("chatId", "==", chatId)
                     .onSnapshot((snap) => {
-                        console.log("Private messages:", snap.docs.length);
-                        
                         const container = document.getElementById('messagesContainer');
                         const messages = [];
                         
@@ -1835,7 +1871,6 @@
                             messages.push({ id: doc.id, ...doc.data() });
                         });
                         
-                        // Sort by timestamp
                         messages.sort((a, b) => {
                             const timeA = a.timestamp ? a.timestamp.toMillis() : 0;
                             const timeB = b.timestamp ? b.timestamp.toMillis() : 0;
@@ -1849,7 +1884,6 @@
                         
                         scrollToBottom();
                         
-                        // Mark as read
                         snap.docs.forEach(async (doc) => {
                             const data = doc.data();
                             if (data.senderId !== currentUserId && !data.read) {
@@ -1860,7 +1894,6 @@
                         console.error("Private messages error:", error);
                     });
 
-                // Mark inbox as read
                 await db.collection("inbox")
                     .where("chatId", "==", chatId)
                     .where("userId", "==", currentUserId)
@@ -1884,9 +1917,12 @@
                 messagesListener = null;
             }
             currentChat = null;
+            cancelReply();
         }
 
-        // FIXED: Send message function
+        // ============================================
+        // SEND MESSAGE - FIXED FOR INBOX NOTIFICATION
+        // ============================================
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
@@ -1897,9 +1933,6 @@
                 return;
             }
 
-            console.log("Sending message to:", currentChat.type);
-
-            // Check block for private
             if (currentChat.type === 'private') {
                 if (blockedUsers.has(currentChat.otherUserId)) {
                     alert("You have blocked this user");
@@ -1907,7 +1940,6 @@
                 }
             }
 
-            // Clear input
             input.value = '';
             cancelReply();
 
@@ -1928,23 +1960,17 @@
                 }
 
                 if (currentChat.type === 'room') {
-                    // Room message
                     messageData.roomId = currentChat.id;
-                    console.log("Sending room message:", messageData);
-                    
                     await db.collection("roomMessages").add(messageData);
-                    console.log("✓ Room message sent");
                     
                 } else {
-                    // Private message
                     messageData.chatId = currentChat.id;
                     messageData.read = false;
                     
                     await db.collection("messages").add(messageData);
-                    console.log("✓ Private message sent");
-
-                    // Update inbox
-                    await updateInbox(currentChat, text);
+                    
+                    // FIXED: Update inbox for BOTH users immediately
+                    await updateInboxForBothUsers(currentChat, text);
                 }
 
             } catch (err) {
@@ -1954,57 +1980,68 @@
             }
         }
 
-        // Separate inbox update
-        async function updateInbox(chat, text) {
+        // FIXED: Create/update inbox entries for both sender and receiver
+        async function updateInboxForBothUsers(chat, text) {
             try {
-                const inboxData = {
-                    chatId: chat.id,
-                    lastMessage: text,
-                    lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-                    type: 'private'
-                };
-
-                // My inbox
-                const myQuery = await db.collection("inbox")
+                const now = firebase.firestore.FieldValue.serverTimestamp();
+                
+                // 1. Update/create MY inbox (sender) - no unread count for me
+                const myInboxQuery = await db.collection("inbox")
                     .where("chatId", "==", chat.id)
                     .where("userId", "==", currentUserId)
                     .get();
 
-                if (myQuery.empty) {
-                    await db.collection("inbox").add({
-                        ...inboxData,
-                        userId: currentUserId,
-                        otherUserId: chat.otherUserId,
-                        otherUsername: chat.name,
-                        otherAvatar: chat.otherAvatar || defaultAvatars[0].url,
+                const myInboxData = {
+                    chatId: chat.id,
+                    lastMessage: text,
+                    lastMessageTime: now,
+                    type: 'private',
+                    userId: currentUserId,
+                    otherUserId: chat.otherUserId,
+                    otherUsername: chat.name,
+                    otherAvatar: chat.otherAvatar || defaultAvatars[0].url,
+                    unreadCount: 0
+                };
+
+                if (myInboxQuery.empty) {
+                    await db.collection("inbox").add(myInboxData);
+                } else {
+                    await myInboxQuery.docs[0].ref.update({
+                        lastMessage: text,
+                        lastMessageTime: now,
                         unreadCount: 0
                     });
-                } else {
-                    await myQuery.docs[0].ref.update({ ...inboxData, unreadCount: 0 });
                 }
 
-                // Their inbox
-                const theirQuery = await db.collection("inbox")
+                // 2. Update/create THEIR inbox (receiver) - with unread count
+                const theirInboxQuery = await db.collection("inbox")
                     .where("chatId", "==", chat.id)
                     .where("userId", "==", chat.otherUserId)
                     .get();
 
-                if (theirQuery.empty) {
-                    await db.collection("inbox").add({
-                        ...inboxData,
-                        userId: chat.otherUserId,
-                        otherUserId: currentUserId,
-                        otherUsername: currentUser,
-                        otherAvatar: userProfileData.avatar || defaultAvatars[0].url,
-                        unreadCount: 1
-                    });
+                const theirInboxData = {
+                    chatId: chat.id,
+                    lastMessage: text,
+                    lastMessageTime: now,
+                    type: 'private',
+                    userId: chat.otherUserId,
+                    otherUserId: currentUserId,
+                    otherUsername: currentUser,
+                    otherAvatar: userProfileData.avatar || defaultAvatars[0].url,
+                    unreadCount: 1
+                };
+
+                if (theirInboxQuery.empty) {
+                    await db.collection("inbox").add(theirInboxData);
                 } else {
-                    const currentUnread = theirQuery.docs[0].data().unreadCount || 0;
-                    await theirQuery.docs[0].ref.update({
-                        ...inboxData,
+                    const currentUnread = theirInboxQuery.docs[0].data().unreadCount || 0;
+                    await theirInboxQuery.docs[0].ref.update({
+                        lastMessage: text,
+                        lastMessageTime: now,
                         unreadCount: currentUnread + 1
                     });
                 }
+
             } catch (err) {
                 console.error("Inbox update error:", err);
             }
@@ -2080,12 +2117,11 @@
             inboxListener = db.collection("inbox")
                 .where("userId", "==", currentUserId)
                 .onSnapshot((snap) => {
-                    console.log("Inbox updated:", snap.docs.length);
                     const list = document.getElementById('inboxList');
                     
                     if (snap.empty) {
                         list.innerHTML = `
-                                                       <div class="empty-state">
+                            <div class="empty-state">
                                 <div class="empty-state-icon">💬</div>
                                 <p>No conversations yet</p>
                                 <p style="font-size: 14px; margin-top: 10px;">Search for users to start chatting!</p>
@@ -2096,7 +2132,6 @@
 
                     list.innerHTML = '';
                     
-                    // Sort manually by lastMessageTime
                     const conversations = [];
                     snap.forEach(doc => {
                         conversations.push({ id: doc.id, ...doc.data() });
@@ -2105,7 +2140,7 @@
                     conversations.sort((a, b) => {
                         const timeA = a.lastMessageTime ? a.lastMessageTime.toMillis() : 0;
                         const timeB = b.lastMessageTime ? b.lastMessageTime.toMillis() : 0;
-                        return timeB - timeA; // Newest first
+                        return timeB - timeA;
                     });
                     
                     conversations.forEach(data => {
@@ -2139,7 +2174,7 @@
         }
 
         // ============================================
-        // SEARCH SYSTEM - COMPLETELY FIXED
+        // SEARCH SYSTEM - FIXED
         // ============================================
         async function handleSearch(e) {
             if (e.key !== 'Enter') return;
@@ -2151,27 +2186,20 @@
             resultsDiv.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Searching...</p>';
 
             try {
-                // FIXED: Get all users and filter manually (avoids index issues)
                 const snap = await db.collection("users").limit(100).get();
-
-                console.log("Total users:", snap.docs.length, "Query:", query);
 
                 const matchingUsers = [];
                 snap.forEach(doc => {
                     const user = doc.data();
                     const username = (user.username || '').toLowerCase();
                     
-                    // Match if username contains query
                     if (username.includes(query) && user.username !== currentUser) {
-                        // Ensure userId exists
                         if (!user.userId) {
-                            user.userId = doc.id; // Use doc ID as fallback
+                            user.userId = doc.id;
                         }
                         matchingUsers.push({ docId: doc.id, ...user });
                     }
                 });
-
-                console.log("Matching users:", matchingUsers.length);
 
                 if (matchingUsers.length === 0) {
                     resultsDiv.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 40px;">No users found with "${escapeHtml(query)}"</p>`;
@@ -2229,7 +2257,6 @@
                 if (doc.exists) {
                     const data = doc.data();
                     blockedUsers = new Set(data.blockedUsers || []);
-                    console.log("Blocked users loaded:", blockedUsers.size);
                 }
             } catch (err) {
                 console.error("Load blocked error:", err);
@@ -2247,7 +2274,6 @@
                 });
                 alert(`${username} blocked.`);
                 
-                // Refresh search
                 const searchInput = document.getElementById('searchInput');
                 if (searchInput.value.trim()) {
                     handleSearch({ key: 'Enter' });
@@ -2431,11 +2457,9 @@
 
                 await db.collection("users").doc(currentUserDocId).update(updateData);
 
-                // Update messages
                 if (usernameChanged || avatarChanged) {
                     const batch = db.batch();
                     
-                    // Room messages
                     const roomMsgs = await db.collection("roomMessages")
                         .where("senderId", "==", currentUserId)
                         .limit(500)
@@ -2448,7 +2472,6 @@
                         batch.update(doc.ref, upd);
                     });
 
-                    // Private messages
                     const privMsgs = await db.collection("messages")
                         .where("senderId", "==", currentUserId)
                         .limit(500)
@@ -2496,7 +2519,6 @@
             return div.innerHTML;
         }
 
-        // Enter key handlers
         document.getElementById('loginUsername').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('loginPassword').focus();
         });
@@ -2513,7 +2535,6 @@
             if (e.key === 'Enter') sendMessage();
         });
 
-        // Close modals on outside click
         window.onclick = function(e) {
             if (e.target.id === 'avatarModal') closeAvatarModal();
             if (e.target.id === 'blockedModal') closeBlockedModal();
