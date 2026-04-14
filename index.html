@@ -33,6 +33,7 @@
             --reply-bg: rgba(142, 108, 255, 0.1);
             --card-bg: rgba(255, 255, 255, 0.9);
             --room-card-bg: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+            --typing-bg: rgba(142, 108, 255, 0.15);
         }
 
         [data-theme="dark"] {
@@ -56,6 +57,7 @@
             --reply-bg: rgba(142, 108, 255, 0.2);
             --card-bg: rgba(15, 52, 96, 0.6);
             --room-card-bg: linear-gradient(135deg, rgba(22,33,62,0.9) 0%, rgba(15,52,96,0.7) 100%);
+            --typing-bg: rgba(142, 108, 255, 0.25);
         }
 
         html, body {
@@ -590,6 +592,32 @@
             color: var(--text-muted);
         }
 
+        .last-seen {
+            font-size: 11px;
+            color: var(--accent-purple);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .last-seen.online {
+            color: #2ecc71;
+        }
+
+        .last-seen::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+        }
+
+        .last-seen.online::before {
+            background: #2ecc71;
+            animation: pulse 2s infinite;
+        }
+
         .unread-count {
             background: var(--accent-pink);
             color: white;
@@ -808,6 +836,38 @@
             color: var(--text-muted);
         }
 
+        .chat-header-info .typing-status {
+            font-size: 13px;
+            color: var(--accent-purple);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .typing-dots span {
+            width: 5px;
+            height: 5px;
+            background: var(--accent-purple);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
         #messagesContainer {
             flex: 1;
             overflow-y: auto;
@@ -815,6 +875,33 @@
             -webkit-overflow-scrolling: touch;
             padding-bottom: 20px;
             position: relative;
+        }
+
+        .typing-indicator {
+            display: none;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-bubble {
+            background: var(--typing-bg);
+            border: 1px solid rgba(142, 108, 255, 0.3);
+            border-radius: 18px;
+            padding: 12px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .typing-text {
+            font-size: 13px;
+            color: var(--accent-purple);
+            font-weight: 500;
         }
 
         .message {
@@ -1330,6 +1417,10 @@
             #sendBtn {
                 padding: 12px 20px;
             }
+
+            .last-seen {
+                font-size: 10px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1359,6 +1450,14 @@
 
             .nav-label {
                 font-size: 10px;
+            }
+
+            .typing-bubble {
+                padding: 10px 12px;
+            }
+
+            .typing-text {
+                font-size: 12px;
             }
         }
 
@@ -1498,7 +1597,18 @@
                 <span id="chatSubtitle">Online</span>
             </div>
         </div>
-        <div id="messagesContainer"></div>
+        <div id="messagesContainer">
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-bubble">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="typing-text">typing...</span>
+                </div>
+            </div>
+        </div>
         <div id="replyPreview">
             <div id="replyPreviewText">Replying to...</div>
             <button id="cancelReply" onclick="cancelReply()">✕</button>
@@ -1633,6 +1743,10 @@
         let messagesListener = null;
         let inboxListener = null;
         let blockedUsers = new Set();
+        let typingListener = null;
+        let lastSeenListener = null;
+        let typingTimeout = null;
+        let isTyping = false;
 
         // ============================================
         // THEME MANAGEMENT
@@ -1713,6 +1827,13 @@
                 }
 
                 await loadBlockedUsers();
+                
+                // Update last seen on login
+                await updateLastSeen();
+                
+                // Start last seen updater
+                startLastSeenUpdater();
+                
                 enterApp();
 
             } catch (err) {
@@ -1751,7 +1872,8 @@
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     isBlocked: false,
                     userId: user.uid,
-                    blockedUsers: []
+                    blockedUsers: [],
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
                 const docRef = await db.collection("users").add(userData);
@@ -1775,6 +1897,218 @@
                 alert("Error: " + err.message);
                 btn.disabled = false;
                 btn.textContent = 'Create Account';
+            }
+        }
+
+        // ============================================
+        // LAST SEEN SYSTEM
+        // ============================================
+        async function updateLastSeen() {
+            if (!currentUserDocId) return;
+            try {
+                await db.collection("users").doc(currentUserDocId).update({
+                    lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Update last seen error:", err);
+            }
+        }
+
+        function startLastSeenUpdater() {
+            // Update every 30 seconds while active
+            setInterval(updateLastSeen, 30000);
+            
+            // Update on page visibility change
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    updateLastSeen();
+                }
+            });
+            
+            // Update on user activity
+            ['click', 'touchstart', 'keydown', 'scroll'].forEach(event => {
+                document.addEventListener(event, () => {
+                    updateLastSeen();
+                }, { once: true });
+            });
+        }
+
+        function formatLastSeen(timestamp) {
+            if (!timestamp) return 'Offline';
+            
+            const now = new Date();
+            const lastSeen = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const diffMs = now - lastSeen;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            // Online if active within last 2 minutes
+            if (diffMins < 2) {
+                return 'online';
+            }
+            
+            if (diffMins < 60) {
+                return `last seen ${diffMins} min ago`;
+            }
+            
+            if (diffHours < 24) {
+                return `last seen ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            }
+            
+            if (diffDays === 1) {
+                return 'last seen yesterday';
+            }
+            
+            if (diffDays < 7) {
+                return `last seen ${diffDays} days ago`;
+            }
+            
+            // Format date
+            const options = { month: 'short', day: 'numeric' };
+            if (lastSeen.getFullYear() !== now.getFullYear()) {
+                options.year = 'numeric';
+            }
+            return `last seen ${lastSeen.toLocaleDateString('en-US', options)}`;
+        }
+
+        function formatLastSeenTime(timestamp) {
+            if (!timestamp) return '';
+            
+            const lastSeen = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - lastSeen;
+            
+            // Online if active within last 2 minutes
+            if (diffMs < 120000) {
+                return 'online';
+            }
+            
+            // If today, show time
+            if (lastSeen.toDateString() === now.toDateString()) {
+                return `at ${lastSeen.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}`;
+            }
+            
+            // If yesterday
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (lastSeen.toDateString() === yesterday.toDateString()) {
+                return `yesterday at ${lastSeen.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}`;
+            }
+            
+            return '';
+        }
+
+        // ============================================
+        // TYPING INDICATOR SYSTEM
+        // ============================================
+        async function setTypingStatus(isTyping) {
+            if (!currentChat || currentChat.type !== 'private' || !currentChat.id) return;
+            
+            try {
+                const typingRef = db.collection("typing").doc(currentChat.id);
+                if (isTyping) {
+                    await typingRef.set({
+                        [currentUserId]: {
+                            isTyping: true,
+                            username: currentUser,
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                        }
+                    }, { merge: true });
+                } else {
+                    await typingRef.update({
+                        [`${currentUserId}.isTyping`]: false,
+                        [`${currentUserId}.timestamp`]: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            } catch (err) {
+                console.error("Typing status error:", err);
+            }
+        }
+
+        function handleInputTyping() {
+            if (!currentChat || currentChat.type !== 'private') return;
+            
+            const input = document.getElementById('messageInput');
+            const hasText = input.value.trim().length > 0;
+            
+            if (hasText && !isTyping) {
+                isTyping = true;
+                setTypingStatus(true);
+            }
+            
+            // Clear existing timeout
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+            
+            // Set new timeout to stop typing after 3 seconds of inactivity
+            typingTimeout = setTimeout(() => {
+                if (isTyping) {
+                    isTyping = false;
+                    setTypingStatus(false);
+                }
+            }, 3000);
+        }
+
+        function stopTyping() {
+            if (isTyping) {
+                isTyping = false;
+                setTypingStatus(false);
+            }
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+        }
+
+        function listenTypingIndicator(chatId, otherUserId) {
+            if (typingListener) typingListener();
+            
+            const typingRef = db.collection("typing").doc(chatId);
+            typingListener = typingRef.onSnapshot((doc) => {
+                const indicator = document.getElementById('typingIndicator');
+                const subtitle = document.getElementById('chatSubtitle');
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    const otherUserTyping = data[otherUserId];
+                    
+                    if (otherUserTyping && otherUserTyping.isTyping) {
+                        // Show typing indicator in messages
+                        indicator.classList.add('active');
+                        // Update subtitle
+                        subtitle.innerHTML = '<span class="typing-status">typing<div class="typing-dots"><span></span><span></span><span></span></div></span>';
+                        scrollToBottom();
+                    } else {
+                        indicator.classList.remove('active');
+                        // Revert to last seen
+                        updateChatSubtitle(otherUserId);
+                    }
+                } else {
+                    indicator.classList.remove('active');
+                    updateChatSubtitle(otherUserId);
+                }
+            }, (error) => {
+                console.error("Typing listener error:", error);
+            });
+        }
+
+        async function updateChatSubtitle(otherUserId) {
+            const subtitle = document.getElementById('chatSubtitle');
+            try {
+                const userDoc = await db.collection("users").where("userId", "==", otherUserId).get();
+                if (!userDoc.empty) {
+                    const userData = userDoc.docs[0].data();
+                    const lastSeenText = formatLastSeen(userData.lastSeen);
+                    
+                    if (lastSeenText === 'online') {
+                        subtitle.innerHTML = '<span style="color: #2ecc71;">● Online</span>';
+                    } else {
+                        subtitle.textContent = lastSeenText;
+                    }
+                }
+            } catch (err) {
+                subtitle.textContent = 'Offline';
             }
         }
 
@@ -1808,7 +2142,7 @@
         }
 
         // ============================================
-        // NAVIGATION
+               // NAVIGATION
         // ============================================
         function switchTab(tab, btn) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1834,9 +2168,26 @@
             
             document.getElementById('chatTitle').textContent = room.name;
             document.getElementById('chatSubtitle').textContent = 'Public Room';
-            document.getElementById('messagesContainer').innerHTML = '';
+            document.getElementById('messagesContainer').innerHTML = `
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-bubble">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="typing-text">typing...</span>
+                    </div>
+                </div>
+            `;
             
             document.getElementById('chatScreen').classList.add('active');
+            
+            // Stop typing listener for rooms
+            if (typingListener) {
+                typingListener();
+                typingListener = null;
+            }
             
             if (messagesListener) messagesListener();
             
@@ -1844,6 +2195,7 @@
                 .where("roomId", "==", roomId)
                 .onSnapshot((snap) => {
                     const container = document.getElementById('messagesContainer');
+                    const typingIndicator = document.getElementById('typingIndicator');
                     
                     const messages = [];
                     snap.forEach(doc => {
@@ -1860,6 +2212,11 @@
                     messages.forEach(msg => {
                         showMessage(msg.id, msg);
                     });
+                    
+                    // Re-add typing indicator at bottom
+                    if (typingIndicator) {
+                        container.appendChild(typingIndicator);
+                    }
                     
                     scrollToBottom();
                 }, (error) => {
@@ -1921,9 +2278,22 @@
                 };
 
                 document.getElementById('chatTitle').textContent = otherUsername;
-                document.getElementById('chatSubtitle').textContent = 'Private Chat';
-                document.getElementById('messagesContainer').innerHTML = '';
+                document.getElementById('messagesContainer').innerHTML = `
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="typing-bubble">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <span class="typing-text">typing...</span>
+                        </div>
+                    </div>
+                `;
                 document.getElementById('chatScreen').classList.add('active');
+
+                // Update subtitle with last seen
+                await updateChatSubtitle(otherUserId);
 
                 if (messagesListener) messagesListener();
 
@@ -1931,6 +2301,7 @@
                     .where("chatId", "==", chatId)
                     .onSnapshot((snap) => {
                         const container = document.getElementById('messagesContainer');
+                        const typingIndicator = document.getElementById('typingIndicator');
                         const messages = [];
                         
                         snap.forEach(doc => {
@@ -1948,6 +2319,11 @@
                             showMessage(msg.id, msg);
                         });
                         
+                        // Re-add typing indicator at bottom
+                        if (typingIndicator) {
+                            container.appendChild(typingIndicator);
+                        }
+                        
                         scrollToBottom();
                         
                         snap.docs.forEach(async (doc) => {
@@ -1960,6 +2336,10 @@
                         console.error("Private messages error:", error);
                     });
 
+                // Start listening for typing indicator
+                listenTypingIndicator(chatId, otherUserId);
+
+                // Mark messages as read in inbox
                 await db.collection("inbox")
                     .where("chatId", "==", chatId)
                     .where("userId", "==", currentUserId)
@@ -1977,10 +2357,17 @@
         }
 
         function closeChat() {
+            // Stop typing when leaving chat
+            stopTyping();
+            
             document.getElementById('chatScreen').classList.remove('active');
             if (messagesListener) {
                 messagesListener();
                 messagesListener = null;
+            }
+            if (typingListener) {
+                typingListener();
+                typingListener = null;
             }
             currentChat = null;
             cancelReply();
@@ -2008,6 +2395,9 @@
 
             input.value = '';
             cancelReply();
+            
+            // Stop typing when message sent
+            stopTyping();
 
             try {
                 const messageData = {
@@ -2122,7 +2512,7 @@
 
             const div = document.createElement('div');
             div.id = `msg-${id}`;
-                       div.className = 'message ' + (isMe ? 'my-message' : '');
+            div.className = 'message ' + (isMe ? 'my-message' : '');
             
             let replyHtml = '';
             if (msg.replyTo) {
@@ -2175,14 +2565,14 @@
         }
 
         // ============================================
-        // INBOX SYSTEM - FIXED
+        // INBOX SYSTEM - FIXED WITH LAST SEEN
         // ============================================
         function listenInbox() {
             if (inboxListener) inboxListener();
 
             inboxListener = db.collection("inbox")
                 .where("userId", "==", currentUserId)
-                .onSnapshot((snap) => {
+                .onSnapshot(async (snap) => {
                     const list = document.getElementById('inboxList');
                     
                     if (snap.empty) {
@@ -2209,9 +2599,28 @@
                         return timeB - timeA;
                     });
                     
+                    // Fetch last seen for all users
+                    const userIds = conversations.map(c => c.otherUserId).filter(id => id);
+                    const userLastSeen = {};
+                    
+                    for (const userId of userIds) {
+                        try {
+                            const userSnap = await db.collection("users").where("userId", "==", userId).get();
+                            if (!userSnap.empty) {
+                                userLastSeen[userId] = userSnap.docs[0].data().lastSeen;
+                            }
+                        } catch (err) {
+                            console.error("Fetch last seen error:", err);
+                        }
+                    }
+                    
                     conversations.forEach(data => {
                         const time = data.lastMessageTime ? 
                             new Date(data.lastMessageTime.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+                        
+                        const lastSeen = userLastSeen[data.otherUserId];
+                        const lastSeenText = formatLastSeen(lastSeen);
+                        const isOnline = lastSeenText === 'online';
                         
                         const item = document.createElement('div');
                         item.className = 'chat-item' + (data.unreadCount > 0 ? ' unread' : '');
@@ -2226,6 +2635,7 @@
                             <div class="chat-info">
                                 <div class="chat-name">${escapeHtml(data.otherUsername || 'Unknown')}</div>
                                 <div class="chat-preview">${escapeHtml(data.lastMessage || 'No messages yet')}</div>
+                                <div class="last-seen ${isOnline ? 'online' : ''}">${lastSeenText}</div>
                             </div>
                             <div class="chat-meta">
                                 <span class="chat-time">${time}</span>
@@ -2275,6 +2685,8 @@
                 resultsDiv.innerHTML = '';
                 matchingUsers.forEach(user => {
                     const isBlocked = blockedUsers.has(user.userId);
+                    const lastSeenText = formatLastSeen(user.lastSeen);
+                    const isOnline = lastSeenText === 'online';
                     
                     const div = document.createElement('div');
                     div.className = 'user-result';
@@ -2283,7 +2695,7 @@
                         <div class="user-result-info">
                             <div class="user-result-name">${user.flag || '🌍'} ${escapeHtml(user.username)}</div>
                             <div class="user-result-bio">${escapeHtml(user.bio || 'No bio yet')}</div>
-                            <div class="user-result-country">${escapeHtml(user.country || 'Unknown')}</div>
+                            <div class="last-seen ${isOnline ? 'online' : ''}" style="font-size: 12px; margin-top: 4px;">${lastSeenText}</div>
                         </div>
                         <div class="user-result-actions">
                             ${!isBlocked ? `
@@ -2597,9 +3009,18 @@
         document.getElementById('regPassword').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') registerUser();
         });
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+        
+        // Add typing detection to message input
+        const messageInput = document.getElementById('messageInput');
+        messageInput.addEventListener('input', handleInputTyping);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            } else {
+                handleInputTyping();
+            }
         });
+        messageInput.addEventListener('blur', stopTyping);
 
         window.onclick = function(e) {
             if (e.target.id === 'avatarModal') closeAvatarModal();
@@ -2616,7 +3037,12 @@
         window.addEventListener('orientationchange', setViewportHeight);
         setViewportHeight();
 
-        console.log("✅ Mubble Chat App Loaded - Mobile Optimized Version");
+        // Update last seen before page unload
+        window.addEventListener('beforeunload', () => {
+            updateLastSeen();
+        });
+
+        console.log("✅ Mubble Chat App Loaded - With Typing & Last Seen Features");
     </script>
 </body>
 </html>
