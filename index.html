@@ -34,6 +34,7 @@
             --card-bg: rgba(255, 255, 255, 0.9);
             --room-card-bg: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
             --typing-bg: rgba(142, 108, 255, 0.15);
+            --deleted-msg: rgba(136, 136, 136, 0.5);
         }
 
         [data-theme="dark"] {
@@ -58,6 +59,7 @@
             --card-bg: rgba(15, 52, 96, 0.6);
             --room-card-bg: linear-gradient(135deg, rgba(22,33,62,0.9) 0%, rgba(15,52,96,0.7) 100%);
             --typing-bg: rgba(142, 108, 255, 0.25);
+            --deleted-msg: rgba(170, 170, 170, 0.3);
         }
 
         html, body {
@@ -390,6 +392,9 @@
             font-family: inherit;
             min-height: 60px;
             justify-content: center;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .nav-item.active {
@@ -537,11 +542,20 @@
             transition: all 0.3s ease;
             border: 1px solid var(--glass-border);
             position: relative;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .chat-item:hover {
             transform: translateX(5px);
             box-shadow: 0 5px 20px var(--shadow-color);
+        }
+
+        .chat-item.holding {
+            transform: scale(0.98);
+            background: rgba(142, 108, 255, 0.1);
         }
 
         .chat-item.unread {
@@ -910,6 +924,10 @@
             position: relative;
             cursor: pointer;
             transition: transform 0.2s;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .message:hover {
@@ -918,6 +936,21 @@
 
         .my-message:hover {
             transform: translateX(-5px);
+        }
+
+        .message.holding {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+
+        .message.deleted {
+            opacity: 0.5;
+        }
+
+        .message.deleted .message-bubble {
+            background: var(--deleted-msg) !important;
+            color: var(--text-muted) !important;
+            font-style: italic;
         }
 
         @keyframes fadeIn {
@@ -943,6 +976,13 @@
             font-size: 11px;
         }
 
+        .edited-badge {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-left: 4px;
+        }
+
         .message-bubble {
             padding: 12px 16px;
             border-radius: 18px;
@@ -955,6 +995,7 @@
             background: var(--message-bg);
             color: var(--message-text);
             border: 1px solid rgba(142, 108, 255, 0.2);
+            position: relative;
         }
 
         .my-message {
@@ -1039,6 +1080,152 @@
 
         .message:not(.my-message) .reply-btn {
             right: -35px;
+        }
+
+        /* Reactions Styles */
+        .reactions-container {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .my-message .reactions-container {
+            justify-content: flex-end;
+        }
+
+        .reaction-badge {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 3px 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reaction-badge:hover {
+            transform: scale(1.1);
+        }
+
+        .reaction-badge.active {
+            background: rgba(142, 108, 255, 0.3);
+            border-color: var(--accent-purple);
+        }
+
+        .reaction-count {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Message Action Menu */
+        .message-action-menu {
+            position: fixed;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 180px;
+            backdrop-filter: blur(20px);
+        }
+
+        .message-action-menu.active {
+            display: flex;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: rgba(142, 108, 255, 0.1);
+        }
+
+        .menu-item.delete {
+            color: #ff4757;
+        }
+
+        .menu-item.delete:hover {
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        .menu-item.edit {
+            color: var(--accent-purple);
+        }
+
+        /* Reaction Picker */
+        .reaction-picker {
+            position: fixed;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 8px 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 3000;
+            display: none;
+            gap: 8px;
+            backdrop-filter: blur(20px);
+        }
+
+        .reaction-picker.active {
+            display: flex;
+        }
+
+        .reaction-option {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reaction-option:hover {
+            transform: scale(1.3);
+            background: rgba(142, 108, 255, 0.2);
+        }
+
+        /* Chat Delete Menu */
+        .chat-delete-menu {
+            position: fixed;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 200px;
+            backdrop-filter: blur(20px);
+        }
+
+        .chat-delete-menu.active {
+            display: flex;
         }
 
         #replyPreview {
@@ -1364,6 +1551,97 @@
             font-weight: 600;
         }
 
+        /* Overlay for menus */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 2999;
+            display: none;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        /* Edit Message Modal */
+        #editModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background: rgba(0,0,0,0.8);
+            z-index: 2500;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #editModal.active {
+            display: flex;
+        }
+
+        .edit-modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .edit-modal-content h3 {
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #editMessageInput {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(142, 108, 255, 0.2);
+            border-radius: 15px;
+            font-size: 15px;
+            background: var(--input-bg);
+            color: var(--text-dark);
+            margin-bottom: 15px;
+            font-family: inherit;
+            resize: none;
+            min-height: 80px;
+        }
+
+        .edit-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: linear-gradient(45deg, #ff6ec7, #8e6cff);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: rgba(136, 136, 136, 0.2);
+            color: var(--text-muted);
+        }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(142, 108, 255, 0.3); border-radius: 3px; }
@@ -1421,6 +1699,12 @@
             .last-seen {
                 font-size: 10px;
             }
+
+            .message-action-menu,
+            .reaction-picker,
+            .chat-delete-menu {
+                max-width: 90vw;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1459,6 +1743,12 @@
             .typing-text {
                 font-size: 12px;
             }
+
+            .reaction-option {
+                font-size: 20px;
+                width: 36px;
+                height: 36px;
+            }
         }
 
         @media (max-width: 380px) {
@@ -1472,7 +1762,7 @@
         }
 
         @supports (height: 100dvh) {
-            html, body, #appContainer, #chatScreen, #loginBackground, #profilePanel, #avatarModal, #blockedModal {
+            html, body, #appContainer, #chatScreen, #loginBackground, #profilePanel, #avatarModal, #blockedModal, #editModal {
                 min-height: 100dvh;
             }
         }
@@ -1681,6 +1971,49 @@
         </div>
     </div>
 
+    <!-- Message Action Menu (Delete/Edit) -->
+    <div class="menu-overlay" id="menuOverlay" onclick="closeAllMenus()"></div>
+    
+    <div class="message-action-menu" id="messageActionMenu">
+        <div class="menu-item edit" onclick="editMessage()">
+            <span>✏️</span> Edit Message
+        </div>
+        <div class="menu-item delete" onclick="deleteMessageForEveryone()">
+            <span>🗑️</span> Delete for Everyone
+        </div>
+    </div>
+
+    <!-- Reaction Picker -->
+    <div class="reaction-picker" id="reactionPicker">
+        <span class="reaction-option" onclick="addReaction('👍')">👍</span>
+        <span class="reaction-option" onclick="addReaction('❤️')">❤️</span>
+        <span class="reaction-option" onclick="addReaction('😂')">😂</span>
+        <span class="reaction-option" onclick="addReaction('😢')">😢</span>
+        <span class="reaction-option" onclick="addReaction('💀')">💀</span>
+    </div>
+
+    <!-- Chat Delete Menu -->
+    <div class="chat-delete-menu" id="chatDeleteMenu">
+        <div class="menu-item delete" onclick="deleteEntireChat()">
+            <span>🗑️</span> Delete Chat
+        </div>
+        <div class="menu-item" onclick="closeAllMenus()">
+            <span>❌</span> Cancel
+        </div>
+    </div>
+
+    <!-- Edit Message Modal -->
+    <div id="editModal">
+        <div class="edit-modal-content">
+            <h3>Edit Message</h3>
+            <textarea id="editMessageInput" maxlength="500"></textarea>
+            <div class="edit-buttons">
+                <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-save" onclick="saveEditedMessage()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -1747,6 +2080,17 @@
         let lastSeenListener = null;
         let typingTimeout = null;
         let isTyping = false;
+
+        // New State for Edit/Delete/Reactions
+        let selectedMessageId = null;
+        let selectedMessageData = null;
+        let editingMessageId = null;
+        let deletedMessageIds = new Set(); // Local tracking of deleted messages
+        let hiddenChats = new Set(); // Local tracking of hidden chats
+        let longPressTimer = null;
+        let isLongPress = false;
+        let selectedChatId = null;
+        let selectedChatData = null;
 
         // ============================================
         // THEME MANAGEMENT
@@ -1827,6 +2171,9 @@
                 }
 
                 await loadBlockedUsers();
+                
+                // Load hidden chats from localStorage
+                loadHiddenChats();
                 
                 // Update last seen on login
                 await updateLastSeen();
@@ -1915,17 +2262,14 @@
         }
 
         function startLastSeenUpdater() {
-            // Update every 30 seconds while active
             setInterval(updateLastSeen, 30000);
             
-            // Update on page visibility change
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) {
                     updateLastSeen();
                 }
             });
             
-            // Update on user activity
             ['click', 'touchstart', 'keydown', 'scroll'].forEach(event => {
                 document.addEventListener(event, () => {
                     updateLastSeen();
@@ -1943,7 +2287,6 @@
             const diffHours = Math.floor(diffMs / 3600000);
             const diffDays = Math.floor(diffMs / 86400000);
             
-            // Online if active within last 2 minutes
             if (diffMins < 2) {
                 return 'online';
             }
@@ -1964,7 +2307,6 @@
                 return `last seen ${diffDays} days ago`;
             }
             
-            // Format date
             const options = { month: 'short', day: 'numeric' };
             if (lastSeen.getFullYear() !== now.getFullYear()) {
                 options.year = 'numeric';
@@ -1972,31 +2314,27 @@
             return `last seen ${lastSeen.toLocaleDateString('en-US', options)}`;
         }
 
-        function formatLastSeenTime(timestamp) {
-            if (!timestamp) return '';
-            
-            const lastSeen = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            const now = new Date();
-            const diffMs = now - lastSeen;
-            
-            // Online if active within last 2 minutes
-            if (diffMs < 120000) {
-                return 'online';
+        // ============================================
+        // HIDDEN CHATS MANAGEMENT
+        // ============================================
+        function loadHiddenChats() {
+            const saved = localStorage.getItem(`hiddenChats_${currentUserId}`);
+            if (saved) {
+                hiddenChats = new Set(JSON.parse(saved));
             }
-            
-            // If today, show time
-            if (lastSeen.toDateString() === now.toDateString()) {
-                return `at ${lastSeen.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}`;
-            }
-            
-            // If yesterday
-            const yesterday = new Date(now);
-            yesterday.setDate(yesterday.getDate() - 1);
-            if (lastSeen.toDateString() === yesterday.toDateString()) {
-                return `yesterday at ${lastSeen.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}`;
-            }
-            
-            return '';
+        }
+
+        function saveHiddenChats() {
+            localStorage.setItem(`hiddenChats_${currentUserId}`, JSON.stringify([...hiddenChats]));
+        }
+
+        function hideChat(chatId) {
+            hiddenChats.add(chatId);
+            saveHiddenChats();
+        }
+
+        function isChatHidden(chatId) {
+            return hiddenChats.has(chatId);
         }
 
         // ============================================
@@ -2037,12 +2375,10 @@
                 setTypingStatus(true);
             }
             
-            // Clear existing timeout
             if (typingTimeout) {
                 clearTimeout(typingTimeout);
             }
             
-            // Set new timeout to stop typing after 3 seconds of inactivity
             typingTimeout = setTimeout(() => {
                 if (isTyping) {
                     isTyping = false;
@@ -2074,14 +2410,11 @@
                     const otherUserTyping = data[otherUserId];
                     
                     if (otherUserTyping && otherUserTyping.isTyping) {
-                        // Show typing indicator in messages
                         indicator.classList.add('active');
-                        // Update subtitle
                         subtitle.innerHTML = '<span class="typing-status">typing<div class="typing-dots"><span></span><span></span><span></span></div></span>';
                         scrollToBottom();
                     } else {
                         indicator.classList.remove('active');
-                        // Revert to last seen
                         updateChatSubtitle(otherUserId);
                     }
                 } else {
@@ -2142,7 +2475,7 @@
         }
 
         // ============================================
-               // NAVIGATION
+        // NAVIGATION
         // ============================================
         function switchTab(tab, btn) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -2160,7 +2493,7 @@
         }
 
         // ============================================
-        // CHAT SYSTEM - FIXED
+        // CHAT SYSTEM
         // ============================================
         function openRoom(roomId) {
             const room = rooms.find(r => r.id === roomId);
@@ -2183,7 +2516,6 @@
             
             document.getElementById('chatScreen').classList.add('active');
             
-            // Stop typing listener for rooms
             if (typingListener) {
                 typingListener();
                 typingListener = null;
@@ -2213,7 +2545,6 @@
                         showMessage(msg.id, msg);
                     });
                     
-                    // Re-add typing indicator at bottom
                     if (typingIndicator) {
                         container.appendChild(typingIndicator);
                     }
@@ -2235,6 +2566,9 @@
                 return;
             }
 
+            // Check if chat was hidden - if so, unhide it for new conversation
+            let chatId = null;
+            
             try {
                 const otherUserDoc = await db.collection("users").where("username", "==", otherUsername).get();
                 if (!otherUserDoc.empty) {
@@ -2250,7 +2584,6 @@
                     .where("participants", "array-contains", currentUserId)
                     .get();
 
-                let chatId = null;
                 chatQuery.forEach(doc => {
                     const data = doc.data();
                     if (data.participants && data.participants.includes(otherUserId)) {
@@ -2267,6 +2600,12 @@
                         lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     chatId = newChat.id;
+                }
+
+                // Remove from hidden chats if starting new conversation
+                if (hiddenChats.has(chatId)) {
+                    hiddenChats.delete(chatId);
+                    saveHiddenChats();
                 }
 
                 currentChat = { 
@@ -2292,7 +2631,6 @@
                 `;
                 document.getElementById('chatScreen').classList.add('active');
 
-                // Update subtitle with last seen
                 await updateChatSubtitle(otherUserId);
 
                 if (messagesListener) messagesListener();
@@ -2319,7 +2657,6 @@
                             showMessage(msg.id, msg);
                         });
                         
-                        // Re-add typing indicator at bottom
                         if (typingIndicator) {
                             container.appendChild(typingIndicator);
                         }
@@ -2336,10 +2673,8 @@
                         console.error("Private messages error:", error);
                     });
 
-                // Start listening for typing indicator
                 listenTypingIndicator(chatId, otherUserId);
 
-                // Mark messages as read in inbox
                 await db.collection("inbox")
                     .where("chatId", "==", chatId)
                     .where("userId", "==", currentUserId)
@@ -2357,9 +2692,7 @@
         }
 
         function closeChat() {
-            // Stop typing when leaving chat
             stopTyping();
-            
             document.getElementById('chatScreen').classList.remove('active');
             if (messagesListener) {
                 messagesListener();
@@ -2371,10 +2704,489 @@
             }
             currentChat = null;
             cancelReply();
+            closeAllMenus();
         }
 
         // ============================================
-        // SEND MESSAGE - FIXED FOR INBOX NOTIFICATION
+        // MESSAGE DISPLAY WITH REACTIONS & ACTIONS
+        // ============================================
+        function showMessage(id, msg) {
+            const container = document.getElementById('messagesContainer');
+            
+            // Check if message is deleted for current user
+            const isDeletedForMe = msg.deletedFor && msg.deletedFor.includes(currentUserId);
+            if (isDeletedForMe) return; // Don't show deleted messages
+            
+            const isMe = msg.senderId === currentUserId;
+            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+            
+            if (document.getElementById(`msg-${id}`)) {
+                // Update existing message (for edits and reactions)
+                updateExistingMessage(id, msg);
+                return;
+            }
+
+            const div = document.createElement('div');
+            div.id = `msg-${id}`;
+            div.className = 'message ' + (isMe ? 'my-message' : '');
+            
+            if (msg.isDeleted) {
+                div.classList.add('deleted');
+            }
+
+            // Add long press / hold handlers
+            addMessageHoldHandlers(div, id, msg, isMe);
+
+            let replyHtml = '';
+            if (msg.replyTo && !msg.isDeleted) {
+                replyHtml = `
+                    <div class="reply-to">
+                        <span class="reply-to-name">${escapeHtml(msg.replyTo.senderName)}</span>
+                        <div class="reply-to-text">${escapeHtml(msg.replyTo.text)}</div>
+                    </div>
+                `;
+            }
+
+            const editedHtml = msg.isEdited && !msg.isDeleted ? '<span class="edited-badge">(edited)</span>' : '';
+            
+            const statusHtml = isMe && currentChat && currentChat.type === 'private' && !msg.isDeleted ? 
+                `<div class="message-status"><span class="${msg.read ? 'status-read' : ''}">${msg.read ? '✓✓ Read' : '✓ Sent'}</span></div>` : '';
+
+            const avatarUrl = msg.senderAvatar || defaultAvatars[0].url;
+            
+            const messageText = msg.isDeleted ? 'This message was deleted' : escapeHtml(msg.text);
+
+            // Build reactions HTML
+            const reactionsHtml = buildReactionsHtml(msg.reactions, id);
+
+            div.innerHTML = `
+                <button class="reply-btn" onclick="event.stopPropagation(); startReply('${id}', '${escapeHtml(msg.senderName)}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')">↩️</button>
+                <div class="message-header">
+                    <img src="${avatarUrl}" class="user-avatar-small" onerror="this.src='${defaultAvatars[0].url}'">
+                    <span class="username">${escapeHtml(msg.senderName)}</span>
+                    <span class="timestamp">${time}${editedHtml}</span>
+                </div>
+                ${replyHtml}
+                <div class="message-bubble">${messageText}</div>
+                ${reactionsHtml}
+                ${statusHtml}
+            `;
+            
+            container.appendChild(div);
+        }
+
+        function updateExistingMessage(id, msg) {
+            const div = document.getElementById(`msg-${id}`);
+            if (!div) return;
+            
+            const isMe = msg.senderId === currentUserId;
+            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+            const editedHtml = msg.isEdited && !msg.isDeleted ? '<span class="edited-badge">(edited)</span>' : '';
+            
+            // Update timestamp with edited badge
+            const timestampEl = div.querySelector('.timestamp');
+            if (timestampEl) timestampEl.innerHTML = `${time}${editedHtml}`;
+            
+            // Update message text if edited
+            const bubbleEl = div.querySelector('.message-bubble');
+            if (bubbleEl && msg.isEdited && !msg.isDeleted) {
+                bubbleEl.textContent = msg.text;
+            }
+            
+            // Update reactions
+            const reactionsContainer = div.querySelector('.reactions-container');
+            if (reactionsContainer) {
+                reactionsContainer.outerHTML = buildReactionsHtml(msg.reactions, id);
+            } else if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+                const bubble = div.querySelector('.message-bubble');
+                if (bubble) {
+                    const reactionsDiv = document.createElement('div');
+                    reactionsDiv.innerHTML = buildReactionsHtml(msg.reactions, id);
+                    bubble.after(reactionsDiv.firstElementChild);
+                }
+            }
+            
+            // Update deleted status
+            if (msg.isDeleted) {
+                div.classList.add('deleted');
+                const bubble = div.querySelector('.message-bubble');
+                if (bubble) {
+                    bubble.textContent = 'This message was deleted';
+                    bubble.style.background = 'var(--deleted-msg)';
+                    bubble.style.color = 'var(--text-muted)';
+                    bubble.style.fontStyle = 'italic';
+                }
+            }
+        }
+
+        function buildReactionsHtml(reactions, messageId) {
+            if (!reactions || Object.keys(reactions).length === 0) return '';
+            
+            let html = '<div class="reactions-container">';
+            const emojis = ['👍', '❤️', '😂', '😢', '💀'];
+            
+            emojis.forEach(emoji => {
+                const users = reactions[emoji] || [];
+                if (users.length > 0) {
+                    const isMyReaction = users.includes(currentUserId);
+                    html += `
+                        <div class="reaction-badge ${isMyReaction ? 'active' : ''}" onclick="toggleReaction('${messageId}', '${emoji}')">
+                            ${emoji} <span class="reaction-count">${users.length}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        // ============================================
+        // MESSAGE HOLD HANDLERS (Long Press)
+        // ============================================
+        function addMessageHoldHandlers(element, messageId, msgData, isMyMessage) {
+            let pressTimer;
+            let startX, startY;
+            const isTouch = 'ontouchstart' in window;
+            
+            const startHandler = (e) => {
+                // Don't trigger on buttons
+                if (e.target.tagName === 'BUTTON') return;
+                
+                isLongPress = false;
+                startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                element.classList.add('holding');
+                
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    element.classList.remove('holding');
+                    showMessageMenu(messageId, msgData, isMyMessage, startX, startY);
+                }, 600); // 600ms for long press
+            };
+            
+            const endHandler = (e) => {
+                clearTimeout(pressTimer);
+                element.classList.remove('holding');
+                
+                // Prevent click if it was a long press
+                if (isLongPress) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            };
+            
+            const moveHandler = (e) => {
+                const currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                const diffX = Math.abs(currentX - startX);
+                const diffY = Math.abs(currentY - startY);
+                
+                // Cancel if moved too much
+                if (diffX > 10 || diffY > 10) {
+                    clearTimeout(pressTimer);
+                    element.classList.remove('holding');
+                }
+            };
+            
+            if (isTouch) {
+                element.addEventListener('touchstart', startHandler, { passive: true });
+                element.addEventListener('touchend', endHandler);
+                element.addEventListener('touchmove', moveHandler, { passive: true });
+            } else {
+                element.addEventListener('mousedown', startHandler);
+                element.addEventListener('mouseup', endHandler);
+                element.addEventListener('mouseleave', () => {
+                    clearTimeout(pressTimer);
+                    element.classList.remove('holding');
+                });
+            }
+            
+            // Double click for desktop (alternative to long press)
+            element.addEventListener('dblclick', (e) => {
+                if (!isTouch) {
+                    const rect = element.getBoundingClientRect();
+                    showMessageMenu(messageId, msgData, isMyMessage, rect.left + rect.width/2, rect.top);
+                }
+            });
+        }
+
+        function showMessageMenu(messageId, msgData, isMyMessage, x, y) {
+            selectedMessageId = messageId;
+            selectedMessageData = msgData;
+            
+            const menu = document.getElementById('messageActionMenu');
+            const reactionPicker = document.getElementById('reactionPicker');
+            const overlay = document.getElementById('menuOverlay');
+            
+            // Position menu
+            const menuWidth = 180;
+            const menuHeight = isMyMessage ? 100 : 0; // Only show menu for my messages
+            
+            let menuX = x - menuWidth / 2;
+            let menuY = y - menuHeight - 10;
+            
+            // Keep in viewport
+            if (menuX < 10) menuX = 10;
+            if (menuX + menuWidth > window.innerWidth - 10) menuX = window.innerWidth - menuWidth - 10;
+            if (menuY < 10) menuY = y + 20;
+            
+            if (isMyMessage && !msgData.isDeleted) {
+                // Show delete/edit menu for my messages
+                menu.style.left = menuX + 'px';
+                menu.style.top = menuY + 'px';
+                menu.classList.add('active');
+            }
+            
+            // Show reaction picker for others' messages (below the menu or at position)
+            if (!msgData.isDeleted) {
+                const reactionY = isMyMessage ? menuY + 110 : menuY;
+                reactionPicker.style.left = (x - 100) + 'px';
+                reactionPicker.style.top = reactionY + 'px';
+                reactionPicker.classList.add('active');
+            }
+            
+            overlay.classList.add('active');
+        }
+
+        function closeAllMenus() {
+            document.getElementById('messageActionMenu').classList.remove('active');
+            document.getElementById('reactionPicker').classList.remove('active');
+            document.getElementById('chatDeleteMenu').classList.remove('active');
+            document.getElementById('menuOverlay').classList.remove('active');
+            selectedMessageId = null;
+            selectedMessageData = null;
+            selectedChatId = null;
+            selectedChatData = null;
+        }
+
+        // ============================================
+        // MESSAGE ACTIONS (Delete & Edit)
+        // ============================================
+        async function deleteMessageForEveryone() {
+            if (!selectedMessageId || !currentChat) return;
+            
+            if (!confirm("Delete this message for everyone?")) {
+                closeAllMenus();
+                return;
+            }
+            
+            try {
+                const collectionName = currentChat.type === 'room' ? 'roomMessages' : 'messages';
+                
+                await db.collection(collectionName).doc(selectedMessageId).update({
+                    isDeleted: true,
+                    text: 'This message was deleted',
+                    deletedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    deletedBy: currentUserId
+                });
+                
+                closeAllMenus();
+            } catch (err) {
+                console.error("Delete message error:", err);
+                alert("Error deleting message: " + err.message);
+            }
+        }
+
+        function editMessage() {
+            if (!selectedMessageId || !selectedMessageData) return;
+            
+            editingMessageId = selectedMessageId;
+            document.getElementById('editMessageInput').value = selectedMessageData.text;
+            document.getElementById('editModal').classList.add('active');
+            closeAllMenus();
+        }
+
+        async function saveEditedMessage() {
+            if (!editingMessageId || !currentChat) return;
+            
+            const newText = document.getElementById('editMessageInput').value.trim();
+            if (!newText) {
+                alert("Message cannot be empty!");
+                return;
+            }
+            
+            try {
+                const collectionName = currentChat.type === 'room' ? 'roomMessages' : 'messages';
+                
+                await db.collection(collectionName).doc(editingMessageId).update({
+                    text: newText,
+                    isEdited: true,
+                    editedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                closeEditModal();
+            } catch (err) {
+                console.error("Edit message error:", err);
+                alert("Error editing message: " + err.message);
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingMessageId = null;
+        }
+
+        // ============================================
+        // REACTIONS SYSTEM
+        // ============================================
+        async function addReaction(emoji) {
+            if (!selectedMessageId || !currentChat) return;
+            
+            await toggleReaction(selectedMessageId, emoji);
+            closeAllMenus();
+        }
+
+        async function toggleReaction(messageId, emoji) {
+            if (!currentChat) return;
+            
+            try {
+                const collectionName = currentChat.type === 'room' ? 'roomMessages' : 'messages';
+                const msgRef = db.collection(collectionName).doc(messageId);
+                
+                const doc = await msgRef.get();
+                if (!doc.exists) return;
+                
+                const data = doc.data();
+                const reactions = data.reactions || {};
+                
+                // Initialize emoji array if not exists
+                if (!reactions[emoji]) {
+                    reactions[emoji] = [];
+                }
+                
+                const userIndex = reactions[emoji].indexOf(currentUserId);
+                
+                if (userIndex > -1) {
+                    // Remove reaction
+                    reactions[emoji].splice(userIndex, 1);
+                    if (reactions[emoji].length === 0) {
+                        delete reactions[emoji];
+                    }
+                } else {
+                    // Add reaction
+                    reactions[emoji].push(currentUserId);
+                }
+                
+                await msgRef.update({ reactions: reactions });
+                
+            } catch (err) {
+                console.error("Reaction error:", err);
+            }
+        }
+
+        // ============================================
+        // CHAT HOLD TO DELETE (Inbox)
+        // ============================================
+        function addChatHoldHandlers(element, chatId, chatData) {
+            let pressTimer;
+            let startX, startY;
+            const isTouch = 'ontouchstart' in window;
+            
+            const startHandler = (e) => {
+                isLongPress = false;
+                startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                startY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                element.classList.add('holding');
+                
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    element.classList.remove('holding');
+                    showChatDeleteMenu(chatId, chatData, startX, startY);
+                }, 800); // 800ms for chat delete
+            };
+            
+            const endHandler = (e) => {
+                clearTimeout(pressTimer);
+                element.classList.remove('holding');
+                
+                if (isLongPress) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            };
+            
+            const moveHandler = (e) => {
+                const currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const currentY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                const diffX = Math.abs(currentX - startX);
+                const diffY = Math.abs(currentY - startY);
+                
+                if (diffX > 10 || diffY > 10) {
+                    clearTimeout(pressTimer);
+                    element.classList.remove('holding');
+                }
+            };
+            
+            if (isTouch) {
+                element.addEventListener('touchstart', startHandler, { passive: true });
+                element.addEventListener('touchend', endHandler);
+                element.addEventListener('touchmove', moveHandler, { passive: true });
+            } else {
+                element.addEventListener('mousedown', startHandler);
+                element.addEventListener('mouseup', endHandler);
+                element.addEventListener('mouseleave', () => {
+                    clearTimeout(pressTimer);
+                    element.classList.remove('holding');
+                });
+            }
+            
+            // Right click for desktop
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showChatDeleteMenu(chatId, chatData, e.clientX, e.clientY);
+            });
+        }
+
+        function showChatDeleteMenu(chatId, chatData, x, y) {
+            selectedChatId = chatId;
+            selectedChatData = chatData;
+            
+            const menu = document.getElementById('chatDeleteMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            const menuWidth = 200;
+            let menuX = x - menuWidth / 2;
+            let menuY = y;
+            
+            if (menuX < 10) menuX = 10;
+            if (menuX + menuWidth > window.innerWidth - 10) menuX = window.innerWidth - menuWidth - 10;
+            if (menuY + 100 > window.innerHeight) menuY = y - 100;
+            
+            menu.style.left = menuX + 'px';
+            menu.style.top = menuY + 'px';
+            menu.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        async function deleteEntireChat() {
+            if (!selectedChatId) return;
+            
+            if (!confirm("Delete this conversation? Messages will stay in database but won't show in your inbox.")) {
+                closeAllMenus();
+                return;
+            }
+            
+            // Hide chat locally
+            hideChat(selectedChatId);
+            
+            // Refresh inbox
+            closeAllMenus();
+            
+            // Force refresh inbox display
+            const inboxList = document.getElementById('inboxList');
+            const items = inboxList.querySelectorAll('.chat-item');
+            items.forEach(item => {
+                if (item.dataset.chatId === selectedChatId) {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // ============================================
+        // SEND MESSAGE
         // ============================================
         async function sendMessage() {
             const input = document.getElementById('messageInput');
@@ -2395,8 +3207,6 @@
 
             input.value = '';
             cancelReply();
-            
-            // Stop typing when message sent
             stopTyping();
 
             try {
@@ -2405,7 +3215,10 @@
                     senderId: currentUserId,
                     senderName: currentUser,
                     senderAvatar: userProfileData.avatar || defaultAvatars[0].url,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    isDeleted: false,
+                    isEdited: false,
+                    reactions: {}
                 };
 
                 if (replyingTo) {
@@ -2425,7 +3238,6 @@
                     
                     await db.collection("messages").add(messageData);
                     
-                    // FIXED: Update inbox for BOTH users immediately
                     await updateInboxForBothUsers(currentChat, text);
                 }
 
@@ -2436,12 +3248,10 @@
             }
         }
 
-        // FIXED: Create/update inbox entries for both sender and receiver
         async function updateInboxForBothUsers(chat, text) {
             try {
                 const now = firebase.firestore.FieldValue.serverTimestamp();
                 
-                // 1. Update/create MY inbox (sender) - no unread count for me
                 const myInboxQuery = await db.collection("inbox")
                     .where("chatId", "==", chat.id)
                     .where("userId", "==", currentUserId)
@@ -2469,7 +3279,6 @@
                     });
                 }
 
-                // 2. Update/create THEIR inbox (receiver) - with unread count
                 const theirInboxQuery = await db.collection("inbox")
                     .where("chatId", "==", chat.id)
                     .where("userId", "==", chat.otherUserId)
@@ -2503,48 +3312,6 @@
             }
         }
 
-        function showMessage(id, msg) {
-            const container = document.getElementById('messagesContainer');
-            const isMe = msg.senderId === currentUserId;
-            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
-            
-            if (document.getElementById(`msg-${id}`)) return;
-
-            const div = document.createElement('div');
-            div.id = `msg-${id}`;
-            div.className = 'message ' + (isMe ? 'my-message' : '');
-            
-            let replyHtml = '';
-            if (msg.replyTo) {
-                replyHtml = `
-                    <div class="reply-to">
-                        <span class="reply-to-name">${escapeHtml(msg.replyTo.senderName)}</span>
-                        <div class="reply-to-text">${escapeHtml(msg.replyTo.text)}</div>
-                    </div>
-                `;
-            }
-
-            const statusHtml = isMe && currentChat && currentChat.type === 'private' ? 
-                `<div class="message-status"><span class="${msg.read ? 'status-read' : ''}">${msg.read ? '✓✓ Read' : '✓ Sent'}</span></div>` : '';
-
-            const avatarUrl = msg.senderAvatar || defaultAvatars[0].url;
-
-            div.innerHTML = `
-                <button class="reply-btn" onclick="startReply('${id}', '${escapeHtml(msg.senderName)}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')">↩️</button>
-                <div class="message-header">
-                    <img src="${avatarUrl}" class="user-avatar-small" onerror="this.src='${defaultAvatars[0].url}'">
-                    <span class="username">${escapeHtml(msg.senderName)}</span>
-                    <span class="timestamp">${time}</span>
-                </div>
-                ${replyHtml}
-                <div class="message-bubble">${escapeHtml(msg.text)}</div>
-                ${statusHtml}
-            `;
-            
-            div.addEventListener('dblclick', () => startReply(id, msg.senderName, msg.text));
-            container.appendChild(div);
-        }
-
         function startReply(messageId, username, text) {
             replyingTo = { id: messageId, username, text };
             document.getElementById('replyPreview').style.display = 'block';
@@ -2565,7 +3332,7 @@
         }
 
         // ============================================
-        // INBOX SYSTEM - FIXED WITH LAST SEEN
+        // INBOX SYSTEM
         // ============================================
         function listenInbox() {
             if (inboxListener) inboxListener();
@@ -2599,7 +3366,6 @@
                         return timeB - timeA;
                     });
                     
-                    // Fetch last seen for all users
                     const userIds = conversations.map(c => c.otherUserId).filter(id => id);
                     const userLastSeen = {};
                     
@@ -2615,6 +3381,9 @@
                     }
                     
                     conversations.forEach(data => {
+                        // Skip hidden chats
+                        if (isChatHidden(data.chatId)) return;
+                        
                         const time = data.lastMessageTime ? 
                             new Date(data.lastMessageTime.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
                         
@@ -2624,9 +3393,16 @@
                         
                         const item = document.createElement('div');
                         item.className = 'chat-item' + (data.unreadCount > 0 ? ' unread' : '');
-                        item.onclick = () => {
-                            if (data.otherUserId && data.otherUsername) {
-                                openPrivateChat(data.otherUserId, data.otherUsername, data.otherAvatar);
+                        item.dataset.chatId = data.chatId;
+                        
+                        // Add hold handlers for chat delete
+                        addChatHoldHandlers(item, data.chatId, data);
+                        
+                        item.onclick = (e) => {
+                            if (!isLongPress) {
+                                if (data.otherUserId && data.otherUsername) {
+                                    openPrivateChat(data.otherUserId, data.otherUsername, data.otherAvatar);
+                                }
                             }
                         };
                         
@@ -2650,7 +3426,7 @@
         }
 
         // ============================================
-        // SEARCH SYSTEM - FIXED
+        // SEARCH SYSTEM
         // ============================================
         async function handleSearch(e) {
             if (e.key !== 'Enter') return;
@@ -2951,7 +3727,7 @@
                     });
 
                     const privMsgs = await db.collection("messages")
-                        .where("senderId", "==", currentUserId)
+          .where("senderId", "==", currentUserId)
                         .limit(500)
                         .get();
                     
@@ -2997,6 +3773,7 @@
             return div.innerHTML;
         }
 
+        // Event Listeners
         document.getElementById('loginUsername').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('loginPassword').focus();
         });
@@ -3010,7 +3787,6 @@
             if (e.key === 'Enter') registerUser();
         });
         
-        // Add typing detection to message input
         const messageInput = document.getElementById('messageInput');
         messageInput.addEventListener('input', handleInputTyping);
         messageInput.addEventListener('keypress', (e) => {
@@ -3025,6 +3801,7 @@
         window.onclick = function(e) {
             if (e.target.id === 'avatarModal') closeAvatarModal();
             if (e.target.id === 'blockedModal') closeBlockedModal();
+            if (e.target.id === 'editModal') closeEditModal();
         }
 
         // Mobile viewport height fix
@@ -3037,12 +3814,11 @@
         window.addEventListener('orientationchange', setViewportHeight);
         setViewportHeight();
 
-        // Update last seen before page unload
         window.addEventListener('beforeunload', () => {
             updateLastSeen();
         });
 
-        console.log("✅ Mubble Chat App Loaded - With Typing & Last Seen Features");
+        console.log("✅ Mubble Chat App Loaded - With Edit, Delete & Reactions Features");
     </script>
 </body>
 </html>
