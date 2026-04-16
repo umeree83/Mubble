@@ -1172,42 +1172,58 @@
             color: var(--accent-purple);
         }
 
-        /* Reaction Picker */
-        .reaction-picker {
-            position: fixed;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 8px 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 3000;
-            display: none;
-            gap: 8px;
-            backdrop-filter: blur(20px);
-        }
+       /* Reaction Picker */
+.reaction-picker {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 25px;
+    padding: 12px 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    z-index: 3000;
+    display: none;
+    gap: 10px;
+    backdrop-filter: blur(20px);
+    max-width: 90vw;
+}
 
-        .reaction-picker.active {
-            display: flex;
-        }
+.reaction-picker.active {
+    display: flex;
+}
 
-        .reaction-option {
-            font-size: 24px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            transition: all 0.2s;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.reaction-option {
+    font-size: 28px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .reaction-option:hover {
-            transform: scale(1.3);
-            background: rgba(142, 108, 255, 0.2);
-        }
+.reaction-option:hover {
+    transform: scale(1.2);
+    background: rgba(142, 108, 255, 0.2);
+}
 
+@media (max-width: 480px) {
+    .reaction-picker {
+        padding: 10px 14px;
+        gap: 8px;
+    }
+    
+    .reaction-option {
+        font-size: 24px;
+        width: 44px;
+        height: 44px;
+    }
+}
         /* Chat Delete Menu */
         .chat-delete-menu {
             position: fixed;
@@ -2912,43 +2928,37 @@
             });
         }
 
-        function showMessageMenu(messageId, msgData, isMyMessage, x, y) {
-            selectedMessageId = messageId;
-            selectedMessageData = msgData;
-            
-            const menu = document.getElementById('messageActionMenu');
-            const reactionPicker = document.getElementById('reactionPicker');
-            const overlay = document.getElementById('menuOverlay');
-            
-            // Position menu
-            const menuWidth = 180;
-            const menuHeight = isMyMessage ? 100 : 0; // Only show menu for my messages
-            
-            let menuX = x - menuWidth / 2;
-            let menuY = y - menuHeight - 10;
-            
-            // Keep in viewport
-            if (menuX < 10) menuX = 10;
-            if (menuX + menuWidth > window.innerWidth - 10) menuX = window.innerWidth - menuWidth - 10;
-            if (menuY < 10) menuY = y + 20;
-            
-            if (isMyMessage && !msgData.isDeleted) {
-                // Show delete/edit menu for my messages
-                menu.style.left = menuX + 'px';
-                menu.style.top = menuY + 'px';
-                menu.classList.add('active');
-            }
-            
-            // Show reaction picker for others' messages (below the menu or at position)
-            if (!msgData.isDeleted) {
-                const reactionY = isMyMessage ? menuY + 110 : menuY;
-                reactionPicker.style.left = (x - 100) + 'px';
-                reactionPicker.style.top = reactionY + 'px';
-                reactionPicker.classList.add('active');
-            }
-            
-            overlay.classList.add('active');
-        }
+       function showMessageMenu(messageId, msgData, isMyMessage, x, y) {
+    selectedMessageId = messageId;
+    selectedMessageData = msgData;
+    
+    const menu = document.getElementById('messageActionMenu');
+    const reactionPicker = document.getElementById('reactionPicker');
+    const overlay = document.getElementById('menuOverlay');
+    
+    // Position menu (only for my messages)
+    if (isMyMessage && !msgData.isDeleted) {
+        const menuWidth = 180;
+        let menuX = x - menuWidth / 2;
+        let menuY = y - 110;
+        
+        // Keep in viewport
+        if (menuX < 10) menuX = 10;
+        if (menuX + menuWidth > window.innerWidth - 10) menuX = window.innerWidth - menuWidth - 10;
+        if (menuY < 10) menuY = y + 20;
+        
+        menu.style.left = menuX + 'px';
+        menu.style.top = menuY + 'px';
+        menu.classList.add('active');
+    }
+    
+    // Show reaction picker centered on screen (always visible on mobile)
+    if (!msgData.isDeleted) {
+        reactionPicker.classList.add('active');
+    }
+    
+    overlay.classList.add('active');
+}
 
         function closeAllMenus() {
             document.getElementById('messageActionMenu').classList.remove('active');
