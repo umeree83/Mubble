@@ -2726,57 +2726,74 @@
         // ============================================
         // MESSAGE DISPLAY WITH REACTIONS & ACTIONS
         // ============================================
-        function showMessage(id, msg) {
-            const container = document.getElementById('messagesContainer');
-            
-            // Check if message is deleted for current user
-            const isDeletedForMe = msg.deletedFor && msg.deletedFor.includes(currentUserId);
-            if (isDeletedForMe) return; // Don't show deleted messages
-            
-            const isMe = msg.senderId === currentUserId;
-            const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
-            
-            if (document.getElementById(`msg-${id}`)) {
-                // Update existing message (for edits and reactions)
-                updateExistingMessage(id, msg);
-                return;
-            }
+       function showMessage(id, msg) {
+    const container = document.getElementById('messagesContainer');
+    
+    const isDeletedForMe = msg.deletedFor && msg.deletedFor.includes(currentUserId);
+    if (isDeletedForMe) return;
+    
+    const isMe = msg.senderId === currentUserId;
+    const time = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+    
+    if (document.getElementById(`msg-${id}`)) {
+        updateExistingMessage(id, msg);
+        return;
+    }
 
-            const div = document.createElement('div');
-            div.id = `msg-${id}`;
-            div.className = 'message ' + (isMe ? 'my-message' : '');
-            
-            if (msg.isDeleted) {
-                div.classList.add('deleted');
-            }
+    const div = document.createElement('div');
+    div.id = `msg-${id}`;
+    div.className = 'message ' + (isMe ? 'my-message' : '');
+    
+    if (msg.isDeleted) {
+        div.classList.add('deleted');
+    }
 
-            // Add long press / hold handlers
-            addMessageHoldHandlers(div, id, msg, isMe);
+    addMessageHoldHandlers(div, id, msg, isMe);
 
-            let replyHtml = '';
-            if (msg.replyTo && !msg.isDeleted) {
-                replyHtml = `
-                    <div class="reply-to">
-                        <span class="reply-to-name">${escapeHtml(msg.replyTo.senderName)}</span>
-                        <div class="reply-to-text">${escapeHtml(msg.replyTo.text)}</div>
-                    </div>
-                `;
-            }
+    // 🔥 YEH REPLY WALA BLOCK FIX KIYA HAI
+    let replyHtml = '';
+    if (msg.replyTo && !msg.isDeleted) {
+        replyHtml = `
+            <div class="reply-to">
+                <span class="reply-to-name">↩️ ${escapeHtml(msg.replyTo.senderName)}</span>
+                <div class="reply-to-text">${escapeHtml(msg.replyTo.text)}</div>
+            </div>
+        `;
+    }
 
-            const editedHtml = msg.isEdited && !msg.isDeleted ? '<span class="edited-badge">(edited)</span>' : '';
-            
-            const statusHtml = isMe && currentChat && currentChat.type === 'private' && !msg.isDeleted ? 
-                `<div class="message-status"><span class="${msg.read ? 'status-read' : ''}">${msg.read ? '✓✓ Read' : '✓ Sent'}</span></div>` : '';
+    const editedHtml = msg.isEdited && !msg.isDeleted ? '<span class="edited-badge">(edited)</span>' : '';
+    
+    const statusHtml = isMe && currentChat && currentChat.type === 'private' && !msg.isDeleted ? 
+        `<div class="message-status"><span class="${msg.read ? 'status-read' : ''}">${msg.read ? '✓✓ Read' : '✓ Sent'}</span></div>` : '';
 
-            const avatarUrl = msg.senderAvatar || defaultAvatars[0].url;
-            
-            const messageText = msg.isDeleted ? 'This message was deleted' : escapeHtml(msg.text);
+    const avatarUrl = msg.senderAvatar || defaultAvatars[0].url;
+    
+    const messageText = msg.isDeleted ? 'This message was deleted' : escapeHtml(msg.text);
+
+    const reactionsHtml = buildReactionsHtml(msg.reactions, id);
+
+    // 🔥 YEH INNERHTML FIX KIYA HAI - replyHtml add kiya
+    div.innerHTML = `
+        <button class="reply-btn" onclick="event.stopPropagation(); startReply('${id}', '${encodeURIComponent(msg.senderName)}', '${encodeURIComponent(msg.text)}')">↩️</button>
+        <div class="message-header">
+            <img src="${avatarUrl}" class="user-avatar-small" onerror="this.src='${defaultAvatars[0].url}'">
+            <span class="username">${escapeHtml(msg.senderName)}</span>
+            <span class="timestamp">${time}${editedHtml}</span>
+        </div>
+        ${replyHtml}
+        <div class="message-bubble">${messageText}</div>
+        ${reactionsHtml}
+        ${statusHtml}
+    `;
+    
+    container.appendChild(div);
+}
 
             // Build reactions HTML
-            const reactionsHtml = buildReactionsHtml(msg.reactions, id);
+            const reactionsHtml = buildReactionsHtml(msg.reactions, id); {
 
             div.innerHTML = `
-                <button class="reply-btn" onclick="event.stopPropagation(); startReply('${id}', '${escapeHtml(msg.senderName)}', '${escapeHtml(msg.text).replace(/'/g, "\\'")}')">↩️</button>
+               <button class="reply-btn" onclick="event.stopPropagation(); startReply('${id}', '${encodeURIComponent(msg.senderName)}', '${encodeURIComponent(msg.text)}')">↩️</button>
                 <div class="message-header">
                     <img src="${avatarUrl}" class="user-avatar-small" onerror="this.src='${defaultAvatars[0].url}'">
                     <span class="username">${escapeHtml(msg.senderName)}</span>
@@ -3172,91 +3189,100 @@
         }
 
         async function deleteEntireChat() {
-            if (!selectedChatId) return;
-            
-            if (!confirm("Delete this conversation? Messages will stay in database but won't show in your inbox.")) {
-                closeAllMenus();
-                return;
-            }
-            
-            // Hide chat locally
-            hideChat(selectedChatId);
-            
-            // Refresh inbox
-            closeAllMenus();
-            
-            // Force refresh inbox display
-            const inboxList = document.getElementById('inboxList');
-            const items = inboxList.querySelectorAll('.chat-item');
-            items.forEach(item => {
-                if (item.dataset.chatId === selectedChatId) {
-                    item.style.display = 'none';
-                }
-            });
-        }
-
+    if (!selectedChatId) return;
+    
+    if (!confirm("Delete this conversation? Messages will stay in database but won't show in your inbox.")) {
+        closeAllMenus();
+        return;
+    }
+    
+    try {
+        const inboxQuery = await db.collection("inbox")
+            .where("chatId", "==", selectedChatId)
+            .where("userId", "==", currentUserId)
+            .get();
+        
+        const batch = db.batch();
+        inboxQuery.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        
+        hideChat(selectedChatId);
+        
+    } catch (err) {
+        console.error("Delete chat error:", err);
+        alert("Error deleting chat: " + err.message);
+    }
+    
+    closeAllMenus();
+}
         // ============================================
         // SEND MESSAGE
         // ============================================
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            
-            if (!text) return;
-            if (!currentChat) {
-                alert("No chat selected");
-                return;
-            }
+       async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    
+    if (!text) return;
+    if (!currentChat) {
+        alert("No chat selected");
+        return;
+    }
 
-            if (currentChat.type === 'private') {
-                if (blockedUsers.has(currentChat.otherUserId)) {
-                    alert("You have blocked this user");
-                    return;
-                }
-            }
-
-            input.value = '';
-            cancelReply();
-            stopTyping();
-
-            try {
-                const messageData = {
-                    text: text,
-                    senderId: currentUserId,
-                    senderName: currentUser,
-                    senderAvatar: userProfileData.avatar || defaultAvatars[0].url,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    isDeleted: false,
-                    isEdited: false,
-                    reactions: {}
-                };
-
-                if (replyingTo) {
-                    messageData.replyTo = {
-                        senderName: replyingTo.username,
-                        text: replyingTo.text.substring(0, 100)
-                    };
-                }
-
-                if (currentChat.type === 'room') {
-                    messageData.roomId = currentChat.id;
-                    await db.collection("roomMessages").add(messageData);
-                    
-                } else {
-                    messageData.chatId = currentChat.id;
-                    messageData.read = false;
-                    
-                    await db.collection("messages").add(messageData);
-                    
-                    await updateInboxForBothUsers(currentChat, text);
-                }
-
-            } catch (err) {
-                console.error("Send error:", err);
-                alert("Failed to send: " + err.message);
-                input.value = text;
-            }
+    if (currentChat.type === 'private') {
+        if (blockedUsers.has(currentChat.otherUserId)) {
+            alert("You have blocked this user");
+            return;
         }
+    }
+
+    // 🔥 YEH LINE ADD KI HAI - reply save karne se pehle
+    const currentReply = replyingTo ? { ...replyingTo } : null;
+    
+    input.value = '';
+    cancelReply();
+    stopTyping();
+
+    try {
+        const messageData = {
+            text: text,
+            senderId: currentUserId,
+            senderName: currentUser,
+            senderAvatar: userProfileData.avatar || defaultAvatars[0].url,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            isDeleted: false,
+            isEdited: false,
+            reactions: {}
+        };
+
+        // 🔥 YEH BLOCK ADD KIYA HAI
+        if (currentReply) {
+            messageData.replyTo = {
+                senderName: currentReply.username,
+                text: currentReply.text
+            };
+        }
+
+        if (currentChat.type === 'room') {
+            messageData.roomId = currentChat.id;
+            await db.collection("roomMessages").add(messageData);
+            
+        } else {
+            messageData.chatId = currentChat.id;
+            messageData.read = false;
+            
+            await db.collection("messages").add(messageData);
+            
+            await updateInboxForBothUsers(currentChat, text);
+        }
+
+    } catch (err) {
+        console.error("Send error:", err);
+        alert("Failed to send: " + err.message);
+        input.value = text;
+    }
+}
 
         async function updateInboxForBothUsers(chat, text) {
             try {
@@ -3323,11 +3349,13 @@
         }
 
         function startReply(messageId, username, text) {
-            replyingTo = { id: messageId, username, text };
-            document.getElementById('replyPreview').style.display = 'block';
-            document.getElementById('replyPreviewText').textContent = `Replying to ${username}: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`;
-            document.getElementById('messageInput').focus();
-        }
+    const decodedUsername = decodeURIComponent(username);
+    const decodedText = decodeURIComponent(text);
+    replyingTo = { id: messageId, username: decodedUsername, text: decodedText };
+    document.getElementById('replyPreview').style.display = 'block';
+    document.getElementById('replyPreviewText').textContent = `Replying to ${decodedUsername}: "${decodedText.substring(0, 50)}${decodedText.length > 50 ? '...' : ''}"`;
+    document.getElementById('messageInput').focus();
+}
 
         function cancelReply() {
             replyingTo = null;
